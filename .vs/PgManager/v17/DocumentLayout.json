@@ -1,0 +1,205 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\code\\PgManager\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\services\\roomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\services\\roomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\services\\interfaces\\iroomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\services\\interfaces\\iroomservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\entities\\tenant.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\entities\\tenant.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\entities\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\entities\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\controllers\\roomscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\controllers\\roomscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\pgmanager.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\pgmanager.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|c:\\code\\pgmanager\\pgmanager\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E7F7C2D5-74F4-417D-9D0D-E1E9C17AA15A}|PgManager\\PgManager.csproj|solutionrelative:pgmanager\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IRoomService.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Services\\Interfaces\\IRoomService.cs",
+              "RelativeDocumentMoniker": "PgManager\\Services\\Interfaces\\IRoomService.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Services\\Interfaces\\IRoomService.cs",
+              "RelativeToolTip": "PgManager\\Services\\Interfaces\\IRoomService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-06T16:19:02.232Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RoomService.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Services\\RoomService.cs",
+              "RelativeDocumentMoniker": "PgManager\\Services\\RoomService.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Services\\RoomService.cs",
+              "RelativeToolTip": "PgManager\\Services\\RoomService.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAuwBIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-06T16:22:44.625Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "RoomsController.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Controllers\\RoomsController.cs",
+              "RelativeDocumentMoniker": "PgManager\\Controllers\\RoomsController.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Controllers\\RoomsController.cs",
+              "RelativeToolTip": "PgManager\\Controllers\\RoomsController.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAlwBYAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-06T16:22:00.259Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "PgManager\\Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "PgManager\\Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-02T16:49:41.216Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Program.cs",
+              "RelativeDocumentMoniker": "PgManager\\Program.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Program.cs",
+              "RelativeToolTip": "PgManager\\Program.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAADwvycAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-02T16:44:54.09Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Room.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Entities\\Room.cs",
+              "RelativeDocumentMoniker": "PgManager\\Entities\\Room.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Entities\\Room.cs",
+              "RelativeToolTip": "PgManager\\Entities\\Room.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-02T16:58:51.472Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Tenant.cs",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\Entities\\Tenant.cs",
+              "RelativeDocumentMoniker": "PgManager\\Entities\\Tenant.cs",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\Entities\\Tenant.cs",
+              "RelativeToolTip": "PgManager\\Entities\\Tenant.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-02T17:11:31.215Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PgManager.csproj",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\PgManager.csproj",
+              "RelativeDocumentMoniker": "PgManager\\PgManager.csproj",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\PgManager.csproj",
+              "RelativeToolTip": "PgManager\\PgManager.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-02-02T16:44:38.106Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "PgManager\\appsettings.Development.json",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\appsettings.Development.json",
+              "RelativeToolTip": "PgManager\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-02T16:52:05.404Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\code\\PgManager\\PgManager\\appsettings.json",
+              "RelativeDocumentMoniker": "PgManager\\appsettings.json",
+              "ToolTip": "C:\\code\\PgManager\\PgManager\\appsettings.json",
+              "RelativeToolTip": "PgManager\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-02T16:44:48.231Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
