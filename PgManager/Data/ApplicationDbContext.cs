@@ -21,7 +21,8 @@ namespace PgManager.Data
             // Room Configuration
             modelBuilder.Entity<Room>(entity =>
             {
-                entity.HasIndex(e => e.RoomNumber).IsUnique();
+                // Composite unique index: RoomNumber must be unique per User
+                entity.HasIndex(e => new { e.UserId, e.RoomNumber }).IsUnique();
 
                 entity.Property(r => r.SharingType)
                     .HasConversion<int>();

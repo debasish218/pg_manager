@@ -76,6 +76,7 @@ namespace PgManager.Services
                         DaysSinceLastPayment = t.DaysSinceLastPayment,
                         IsOverdue = t.IsOverdue,
                         DueAmount = t.DueAmount,
+                        CurrentDue = t.CurrentDue,
                         CreatedAt = t.CreatedAt
                     }).ToList()
                 }).ToList();
@@ -131,6 +132,7 @@ namespace PgManager.Services
                         DaysSinceLastPayment = t.DaysSinceLastPayment,
                         IsOverdue = t.IsOverdue,
                         DueAmount = t.DueAmount,
+                        CurrentDue = t.CurrentDue,
                         CreatedAt = t.CreatedAt
                     }).ToList()
                 };

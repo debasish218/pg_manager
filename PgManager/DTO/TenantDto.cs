@@ -15,7 +15,9 @@
         public bool IsActive { get; set; }
         public int DaysSinceLastPayment { get; set; }
         public bool IsOverdue { get; set; }
-        public int DueAmount { get; set; }
+        public int DueAmount { get; set; }      // stored residual (unpaid balance)
+        public int CurrentDue { get; set; }     // auto-calculated: DueAmount + months × rent
+        public int MonthsElapsed { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

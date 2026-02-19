@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PgManager.Data;
+using PgManager.DTO;
 using PgManager.Entities;
 using PgManager.Services;
 
@@ -25,12 +26,21 @@ namespace PgManager.Controllers
         {
             if (string.IsNullOrEmpty(request.PhoneNumber))
                 return BadRequest("Phone number is required");
+            
+            if (string.IsNullOrEmpty(request.PgName))
+                return BadRequest("PG name is required");
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
             if (user == null)
             {
-                user = new User { PhoneNumber = request.PhoneNumber, Name = request.Name };
+                user = new User { PhoneNumber = request.PhoneNumber, Name = request.Name, PgName = request.PgName };
                 _context.Users.Add(user);
+            }
+            else
+            {
+                // Update existing user's details
+                user.Name = request.Name;
+                user.PgName = request.PgName;
             }
 
             var (secret, qrCodeUri) = _authService.GenerateSetupCode(request.PhoneNumber);
@@ -56,7 +66,7 @@ namespace PgManager.Controllers
                 return Unauthorized("Invalid code");
 
             var token = _authService.GenerateJwtToken(user);
-            return Ok(new { Token = token, User = new { user.Id, user.Name, user.PhoneNumber, user.Role } });
+            return Ok(new { Token = token, User = new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role } });
         }
 
         [HttpGet("me")]
@@ -74,13 +84,72 @@ namespace PgManager.Controllers
                 return NotFound("User not found");
             }
 
-            return Ok(new { user.Id, user.Name, user.PhoneNumber, user.Role });
+            return Ok(new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role });
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized("Invalid token");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Update profile fields
+            user.PgName = request.PgName;
+            user.Name = request.Name;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role });
+        }
+
+        [Authorize]
+        [HttpDelete("profile")]
+        public async Task<IActionResult> DeleteProfile()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized("Invalid token");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Delete all associated data
+            // Delete all tenants for this user
+            var tenants = await _context.Tenants.Where(t => t.UserId == userId).ToListAsync();
+            _context.Tenants.RemoveRange(tenants);
+
+            // Delete all rooms for this user
+            var rooms = await _context.Rooms.Where(r => r.UserId == userId).ToListAsync();
+            _context.Rooms.RemoveRange(rooms);
+
+            // Delete the user
+            _context.Users.Remove(user);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Profile deleted successfully" });
         }
     }
 
     public class SetupRequest
     {
-        public string PhoneNumber { get; set; }
+        public required string PhoneNumber { get; set; }
+        public required string PgName { get; set; }
         public string? Name { get; set; }
     }
 

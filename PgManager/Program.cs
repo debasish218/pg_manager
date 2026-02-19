@@ -7,7 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 builder.Services.AddCors(options =>
 {
@@ -68,23 +72,26 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection(); // Commented out for local development with HTTP
 
-app.Use(async (context, next) =>
+// Log incoming requests and bodies in development only
+if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine($"=== INCOMING REQUEST: {context.Request.Method} {context.Request.Path} ===");
-    
-    // Log request body for POST/PUT requests
-    if (context.Request.Method == "POST" || context.Request.Method == "PUT")
+    app.Use(async (context, next) =>
     {
-        context.Request.EnableBuffering();
-        using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
-        var body = await reader.ReadToEndAsync();
-        context.Request.Body.Position = 0;
-        Console.WriteLine($"Request Body: {body}");
-    }
-    
-    await next();
-    Console.WriteLine($"=== RESPONSE STATUS: {context.Response.StatusCode} ===");
-});
+        Console.WriteLine($"=== INCOMING REQUEST: {context.Request.Method} {context.Request.Path} ===");
+
+        if (context.Request.Method == "POST" || context.Request.Method == "PUT")
+        {
+            context.Request.EnableBuffering();
+            using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
+            var body = await reader.ReadToEndAsync();
+            context.Request.Body.Position = 0;
+            Console.WriteLine($"Request Body: {body}");
+        }
+
+        await next();
+        Console.WriteLine($"=== RESPONSE STATUS: {context.Response.StatusCode} ===");
+    });
+}
 
 app.UseCors("AllowAll");
 

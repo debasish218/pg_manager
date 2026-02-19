@@ -9,6 +9,9 @@ namespace PgManager.Entities
         [Required]
         public required string PhoneNumber { get; set; }
 
+        [Required]
+        public required string PgName { get; set; }
+
         public string? TotpSecret { get; set; } // Nullable initially for setup
 
         public string? Name { get; set; }

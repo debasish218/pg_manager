@@ -6,23 +6,13 @@ namespace PgManager.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class RoomsController : ControllerBase
+    public class RoomsController : BaseApiController
     {
         private readonly IRoomService _roomService;
 
         public RoomsController(IRoomService roomService)
         {
             _roomService = roomService;
-        }
-
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return 0;
-            }
-            return userId;
         }
 
         /// <summary>

@@ -54,6 +54,8 @@ namespace PgManager.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
+                    new Claim(ClaimTypes.GivenName, user.Name ?? ""),
+                    new Claim("pgname", user.PgName),
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
                 // Long-lived token for "memorized session" - e.g., 365 days

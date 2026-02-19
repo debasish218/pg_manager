@@ -349,3 +349,4 @@ C:/code/PgManager/PgManager/obj/Debug/net8.0/staticwebassets.upToDateCheck.txt
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/PgManager.pdb
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/PgManager.genruntimeconfig.cache
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/ref/PgManager.dll
+/home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/PgManager.sourcelink.json

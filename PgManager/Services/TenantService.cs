@@ -70,6 +70,8 @@ namespace PgManager.Services
                     DaysSinceLastPayment = t.DaysSinceLastPayment,
                     IsOverdue = t.IsOverdue,
                     DueAmount = t.DueAmount,
+                    CurrentDue = t.CurrentDue,
+                    MonthsElapsed = t.MonthsElapsed,
                     CreatedAt = t.CreatedAt
                 }).ToList();
 
@@ -111,6 +113,8 @@ namespace PgManager.Services
                     DaysSinceLastPayment = tenant.DaysSinceLastPayment,
                     IsOverdue = tenant.IsOverdue,
                     DueAmount = tenant.DueAmount,
+                    CurrentDue = tenant.CurrentDue,
+                    MonthsElapsed = tenant.MonthsElapsed,
                     CreatedAt = tenant.CreatedAt
                 };
 
@@ -202,19 +206,17 @@ namespace PgManager.Services
                     RentAmount = createTenantDto.RentAmount,
                     AdvanceAmount = createTenantDto.AdvanceAmount,
                     JoinDate = createTenantDto.JoinDate,
-                    LastPaidDate = createTenantDto.LastPaidDate,
+                    LastPaidDate = createTenantDto.LastPaidDate ?? new DateTime(2026, 1, 1),
                     IsActive = createTenantDto.IsActive,
                     DueAmount = createTenantDto.DueAmount,
                     CreatedAt = DateTime.UtcNow
                 };
-
+                
                 _context.Tenants.Add(tenant);
-
-                // Update room occupied beds
-                room.OccupiedBeds++;
-                room.UpdatedAt = DateTime.UtcNow;
-
                 await _context.SaveChangesAsync();
+
+                // Reload to get updated room info
+                await _context.Entry(tenant).Reference(t => t.Room).LoadAsync();
 
                 var tenantDto = new TenantDto
                 {
@@ -223,7 +225,7 @@ namespace PgManager.Services
                     PhoneNumber = tenant.PhoneNumber,
                     SharingType = tenant.SharingType.ToString(),
                     RoomId = tenant.RoomId,
-                    RoomNumber = room.RoomNumber,
+                    RoomNumber = tenant.Room.RoomNumber,
                     RentAmount = tenant.RentAmount,
                     AdvanceAmount = tenant.AdvanceAmount,
                     JoinDate = tenant.JoinDate,
@@ -232,14 +234,16 @@ namespace PgManager.Services
                     DaysSinceLastPayment = tenant.DaysSinceLastPayment,
                     IsOverdue = tenant.IsOverdue,
                     DueAmount = tenant.DueAmount,
+                    CurrentDue = tenant.CurrentDue,
+                    MonthsElapsed = tenant.MonthsElapsed,
                     CreatedAt = tenant.CreatedAt
                 };
 
-                return (true, "Tenant created successfully", tenantDto, null);
+                return (true, "Tenant updated successfully", tenantDto, null);
             }
             catch (Exception ex)
             {
-                return (false, "Error creating tenant", null, new List<string> { ex.Message });
+                return (false, "Error updating tenant", null, new List<string> { ex.Message });
             }
         }
 
@@ -344,6 +348,11 @@ namespace PgManager.Services
 
                 if (updateTenantDto.LastPaidDate.HasValue)
                 {
+                    // If date changed, reset the stored due amount so calculation starts fresh from this new date
+                    if (tenant.LastPaidDate != updateTenantDto.LastPaidDate.Value)
+                    {
+                        tenant.DueAmount = 0;
+                    }
                     tenant.LastPaidDate = updateTenantDto.LastPaidDate.Value;
                 }
 
@@ -374,6 +383,8 @@ namespace PgManager.Services
                     DaysSinceLastPayment = tenant.DaysSinceLastPayment,
                     IsOverdue = tenant.IsOverdue,
                     DueAmount = tenant.DueAmount,
+                    CurrentDue = tenant.CurrentDue,
+                    MonthsElapsed = tenant.MonthsElapsed,
                     CreatedAt = tenant.CreatedAt
                 };
 
@@ -399,8 +410,12 @@ namespace PgManager.Services
                     return (false, "Tenant not found", null, new List<string> { "Tenant does not exist" });
                 }
 
+                // Capture current total due before updating any dates
+                // CurrentDue includes both stored DueAmount and time-based rent
+                var totalDueBeforePayment = tenant.CurrentDue;
+
                 tenant.LastPaidDate = updatePaymentDto.PaymentDate;
-                tenant.DueAmount -= updatePaymentDto.PaidAmount;
+                tenant.DueAmount = totalDueBeforePayment - updatePaymentDto.PaidAmount;
                 tenant.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -421,6 +436,8 @@ namespace PgManager.Services
                     DaysSinceLastPayment = tenant.DaysSinceLastPayment,
                     IsOverdue = tenant.IsOverdue,
                     DueAmount = tenant.DueAmount,
+                    CurrentDue = tenant.CurrentDue,
+                    MonthsElapsed = tenant.MonthsElapsed,
                     CreatedAt = tenant.CreatedAt
                 };
 
