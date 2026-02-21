@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SHADOWS, SIZES } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
@@ -80,6 +80,15 @@ const TenantCard = ({ tenant, isHorizontal }) => {
         navigation.navigate('TenantDetail', { tenant });
     };
 
+    const handleCall = (e) => {
+        e.stopPropagation();
+        if (!tenant.phoneNumber) {
+            Alert.alert('No Phone Number', `No phone number is saved for ${tenant.name}.`);
+            return;
+        }
+        Linking.openURL(`tel:${tenant.phoneNumber}`);
+    };
+
     // Color based on current due: Red if due > 0, Green if no dues
     const due = tenant.currentDue ?? tenant.dueAmount;
     const statusColor = due > 0 ? COLORS.error : COLORS.success;
@@ -103,15 +112,25 @@ const TenantCard = ({ tenant, isHorizontal }) => {
                     </View>
                 </View>
                 {!isHorizontal && (
-                    <TouchableOpacity
-                        style={styles.menuButton}
-                        onPress={(e) => {
-                            e.stopPropagation();
-                            setMenuVisible(true);
-                        }}
-                    >
-                        <Ionicons name="ellipsis-vertical" size={24} color={COLORS.textSecondary} />
-                    </TouchableOpacity>
+                    <View style={styles.cardActions}>
+                        {due > 0 && (
+                            <TouchableOpacity
+                                style={styles.callButton}
+                                onPress={handleCall}
+                            >
+                                <Ionicons name="call" size={18} color={COLORS.white} />
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                            style={styles.menuButton}
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                setMenuVisible(true);
+                            }}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.textSecondary} />
+                        </TouchableOpacity>
+                    </View>
                 )}
             </TouchableOpacity>
 
@@ -326,9 +345,22 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
     },
+    cardActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginLeft: 8,
+    },
+    callButton: {
+        backgroundColor: COLORS.error,
+        borderRadius: 20,
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     menuButton: {
-        padding: 8,
-        marginLeft: 10,
+        padding: 4,
     },
     menuOverlay: {
         flex: 1,

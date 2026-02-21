@@ -51,6 +51,7 @@ const TenantForm = ({ route, navigation }) => {
     const [roomCheckLoading, setRoomCheckLoading] = useState(false);
     const [allRooms, setAllRooms] = useState([]);
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showJoinDatePicker, setShowJoinDatePicker] = useState(false);
 
     // Fetch room details to get sharingType and rentPerBed for new tenants
     useEffect(() => {
@@ -311,6 +312,33 @@ const TenantForm = ({ route, navigation }) => {
                             placeholder="0"
                             keyboardType="numeric"
                         />
+
+                        {/* Joining Date — always editable */}
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>Joining Date <Text style={styles.required}>*</Text></Text>
+                            <TouchableOpacity
+                                style={styles.dateButton}
+                                onPress={() => setShowJoinDatePicker(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                                <Text style={styles.dateButtonText}>
+                                    {formatDateDisplay(formData.joinDate)}
+                                </Text>
+                                <Ionicons name="chevron-down" size={16} color={COLORS.textSecondary} />
+                            </TouchableOpacity>
+                            <DatePickerModal
+                                visible={showJoinDatePicker}
+                                value={formData.joinDate}
+                                title="Select Joining Date"
+                                onConfirm={(iso) => {
+                                    updateField('joinDate', iso);
+                                    setShowJoinDatePicker(false);
+                                }}
+                                onCancel={() => setShowJoinDatePicker(false)}
+                            />
+                        </View>
+
                         {/* Last Payment Date — edit mode only */}
                         {isEdit && (
                             <View style={styles.formGroup}>
@@ -337,7 +365,6 @@ const TenantForm = ({ route, navigation }) => {
                                     onConfirm={(iso) => {
                                         const selectedDate = new Date(iso);
                                         const joinDateObj = new Date(formData.joinDate);
-                                        // Strip time for a date-only comparison
                                         selectedDate.setHours(0, 0, 0, 0);
                                         joinDateObj.setHours(0, 0, 0, 0);
                                         if (selectedDate < joinDateObj) {
