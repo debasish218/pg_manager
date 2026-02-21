@@ -85,23 +85,33 @@ namespace PgManager.Entities
         }
 
         /// <summary>
-        /// True when at least one full calendar month has passed since last payment.
-        /// e.g. paid 18 Feb → overdue from 18 Mar onwards.
+        /// True when at least one full calendar month has passed since last payment,
+        /// OR when LastPaidDate is null (rent immediately due on join).
         /// </summary>
         [NotMapped]
-        public bool IsOverdue => MonthsElapsed > 0;
+        public bool IsOverdue => !LastPaidDate.HasValue || MonthsElapsed > 0;
 
         /// <summary>
         /// Auto-calculated total due:
         ///   DueAmount (stored residual from partial payments)
         ///   + (MonthsElapsed × RentAmount)
         ///
-        /// Example: rent=7000, paid 5000 on 12 Jan (residual DueAmount=2000)
-        ///   - 11 Feb: 2000 + 0×7000 = 2000
-        ///   - 12 Feb: 2000 + 1×7000 = 9000
-        ///   - 12 Mar: 2000 + 2×7000 = 16000
+        /// Special case: if LastPaidDate is null (no payment ever recorded)
+        ///   → rent is immediately due without waiting for one month.
+        ///   → CurrentDue = DueAmount + ((MonthsElapsed + 1) × RentAmount)
         /// </summary>
         [NotMapped]
-        public int CurrentDue => DueAmount + (MonthsElapsed * RentAmount);
+        public int CurrentDue
+        {
+            get
+            {
+                if (!LastPaidDate.HasValue)
+                {
+                    // No payment on record — rent is due from day 1
+                    return DueAmount + ((MonthsElapsed + 1) * RentAmount);
+                }
+                return DueAmount + (MonthsElapsed * RentAmount);
+            }
+        }
     }
 }

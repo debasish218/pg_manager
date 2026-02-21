@@ -47,38 +47,42 @@ namespace PgManager.Services
                     .OrderBy(r => r.RoomNumber)
                     .ToList();
 
-                var roomDtos = sortedRooms.Select(r => new RoomDto
+                var roomDtos = sortedRooms.Select(r =>
                 {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    SharingType = r.SharingType.ToString(),
-                    TotalBeds = r.TotalBeds,
-                    OccupiedBeds = r.OccupiedBeds,
-                    AvailableBeds = r.AvailableBeds,
-                    IsAvailable = r.IsAvailable,
-                    ActiveTenants = r.Tenants.Count(t => t.IsActive),
-                    RentPerBed = r.RentPerBed,
-                    Floor = r.Floor,
-                    CreatedAt = r.CreatedAt,
-                    Tenants = r.Tenants.Select(t => new PgManager.DTOs.Tenant.TenantDto
+                    var activeTenantCount = r.Tenants.Count(t => t.IsActive);
+                    return new RoomDto
                     {
-                        Id = t.Id,
-                        Name = t.Name,
-                        PhoneNumber = t.PhoneNumber,
-                        SharingType = t.SharingType.ToString(),
-                        RoomId = t.RoomId,
+                        Id = r.Id,
                         RoomNumber = r.RoomNumber,
-                        RentAmount = t.RentAmount,
-                        AdvanceAmount = t.AdvanceAmount,
-                        JoinDate = t.JoinDate,
-                        LastPaidDate = t.LastPaidDate,
-                        IsActive = t.IsActive,
-                        DaysSinceLastPayment = t.DaysSinceLastPayment,
-                        IsOverdue = t.IsOverdue,
-                        DueAmount = t.DueAmount,
-                        CurrentDue = t.CurrentDue,
-                        CreatedAt = t.CreatedAt
-                    }).ToList()
+                        SharingType = r.SharingType.ToString(),
+                        TotalBeds = r.TotalBeds,
+                        OccupiedBeds = activeTenantCount,
+                        AvailableBeds = r.TotalBeds - activeTenantCount,
+                        IsAvailable = activeTenantCount < r.TotalBeds,
+                        ActiveTenants = activeTenantCount,
+                        RentPerBed = r.RentPerBed,
+                        Floor = r.Floor,
+                        CreatedAt = r.CreatedAt,
+                        Tenants = r.Tenants.Select(t => new PgManager.DTOs.Tenant.TenantDto
+                        {
+                            Id = t.Id,
+                            Name = t.Name,
+                            PhoneNumber = t.PhoneNumber,
+                            SharingType = t.SharingType.ToString(),
+                            RoomId = t.RoomId,
+                            RoomNumber = r.RoomNumber,
+                            RentAmount = t.RentAmount,
+                            AdvanceAmount = t.AdvanceAmount,
+                            JoinDate = t.JoinDate,
+                            LastPaidDate = t.LastPaidDate,
+                            IsActive = t.IsActive,
+                            DaysSinceLastPayment = t.DaysSinceLastPayment,
+                            IsOverdue = t.IsOverdue,
+                            DueAmount = t.DueAmount,
+                            CurrentDue = t.CurrentDue,
+                            CreatedAt = t.CreatedAt
+                        }).ToList()
+                    };
                 }).ToList();
 
                 return (true, "Rooms retrieved successfully", roomDtos, null);
@@ -103,16 +107,17 @@ namespace PgManager.Services
                     return (false, "Room not found", null, new List<string> { "Room does not exist" });
                 }
 
+                var activeTenantCount = room.Tenants.Count(t => t.IsActive);
                 var roomDto = new RoomDto
                 {
                     Id = room.Id,
                     RoomNumber = room.RoomNumber,
                     SharingType = room.SharingType.ToString(),
                     TotalBeds = room.TotalBeds,
-                    OccupiedBeds = room.OccupiedBeds,
-                    AvailableBeds = room.AvailableBeds,
-                    IsAvailable = room.IsAvailable,
-                    ActiveTenants = room.Tenants.Count(t => t.IsActive),
+                    OccupiedBeds = activeTenantCount,
+                    AvailableBeds = room.TotalBeds - activeTenantCount,
+                    IsAvailable = activeTenantCount < room.TotalBeds,
+                    ActiveTenants = activeTenantCount,
                     RentPerBed = room.RentPerBed,
                     Floor = room.Floor,
                     CreatedAt = room.CreatedAt,
@@ -156,25 +161,29 @@ namespace PgManager.Services
                     .Where(r => (int)r.SharingType == sharingType)
                     .ToListAsync();
 
-                // Sort numerically in memory
+                // Filter available rooms using live tenant count
                 var availableRooms = rooms
-                    .Where(r => r.OccupiedBeds < r.TotalBeds)
+                    .Where(r => r.Tenants.Count(t => t.IsActive) < r.TotalBeds)
                     .OrderBy(r => r.RoomNumber)
                     .ToList();
 
-                var roomDtos = availableRooms.Select(r => new RoomDto
+                var roomDtos = availableRooms.Select(r =>
                 {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    SharingType = r.SharingType.ToString(),
-                    TotalBeds = r.TotalBeds,
-                    OccupiedBeds = r.OccupiedBeds,
-                    AvailableBeds = r.AvailableBeds,
-                    IsAvailable = r.IsAvailable,
-                    ActiveTenants = r.Tenants.Count(t => t.IsActive),
-                    RentPerBed = r.RentPerBed,
-                    Floor = r.Floor,
-                    CreatedAt = r.CreatedAt
+                    var activeTenantCount = r.Tenants.Count(t => t.IsActive);
+                    return new RoomDto
+                    {
+                        Id = r.Id,
+                        RoomNumber = r.RoomNumber,
+                        SharingType = r.SharingType.ToString(),
+                        TotalBeds = r.TotalBeds,
+                        OccupiedBeds = activeTenantCount,
+                        AvailableBeds = r.TotalBeds - activeTenantCount,
+                        IsAvailable = activeTenantCount < r.TotalBeds,
+                        ActiveTenants = activeTenantCount,
+                        RentPerBed = r.RentPerBed,
+                        Floor = r.Floor,
+                        CreatedAt = r.CreatedAt
+                    };
                 }).ToList();
 
                 return (true, "Available rooms retrieved successfully", roomDtos, null);
@@ -256,7 +265,7 @@ namespace PgManager.Services
                 {
                     // Check if new room number already exists
                     var existingRoom = await _context.Rooms
-                        .FirstOrDefaultAsync(r => r.RoomNumber == updateRoomDto.RoomNumber.Value && r.Id != id);
+                        .FirstOrDefaultAsync(r => r.UserId == userId && r.RoomNumber == updateRoomDto.RoomNumber.Value && r.Id != id);
 
                     if (existingRoom != null)
                     {
@@ -272,10 +281,12 @@ namespace PgManager.Services
 
                 if (updateRoomDto.TotalBeds.HasValue)
                 {
-                    if (updateRoomDto.TotalBeds.Value < room.OccupiedBeds)
+                    // Use live active tenant count for the guard
+                    var liveOccupied = room.Tenants.Count(t => t.IsActive);
+                    if (updateRoomDto.TotalBeds.Value < liveOccupied)
                     {
                         return (false, "Cannot reduce total beds below occupied beds", null,
-                            new List<string> { $"Current occupied beds: {room.OccupiedBeds}" });
+                            new List<string> { $"Currently {liveOccupied} active tenant(s) in this room" });
                     }
                     room.TotalBeds = updateRoomDto.TotalBeds.Value;
                 }

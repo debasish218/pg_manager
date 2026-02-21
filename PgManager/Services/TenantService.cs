@@ -183,10 +183,11 @@ namespace PgManager.Services
                     return (false, "Room not found", null, new List<string> { "Room does not exist" });
                 }
 
-                // Check if room has available beds
-                if (room.OccupiedBeds >= room.TotalBeds)
+                // Check if room has available beds (live count from included active tenants)
+                var activeTenantCount = room.Tenants.Count(t => t.IsActive);
+                if (activeTenantCount >= room.TotalBeds)
                 {
-                    return (false, "Room is full", null, new List<string> { "No available beds in this room" });
+                    return (false, "Room is full", null, new List<string> { $"Room is at full capacity ({activeTenantCount}/{room.TotalBeds} beds occupied)" });
                 }
 
                 // Verify sharing type matches room
@@ -206,7 +207,7 @@ namespace PgManager.Services
                     RentAmount = createTenantDto.RentAmount,
                     AdvanceAmount = createTenantDto.AdvanceAmount,
                     JoinDate = createTenantDto.JoinDate,
-                    LastPaidDate = createTenantDto.LastPaidDate ?? new DateTime(2026, 1, 1),
+                    LastPaidDate = createTenantDto.LastPaidDate, // null = no payment made yet
                     IsActive = createTenantDto.IsActive,
                     DueAmount = createTenantDto.DueAmount,
                     CreatedAt = DateTime.UtcNow
@@ -276,9 +277,11 @@ namespace PgManager.Services
                         return (false, "New room not found", null, new List<string> { "New room does not exist" });
                     }
 
-                    if (newRoom.OccupiedBeds >= newRoom.TotalBeds)
+                    // Live count: newRoom.Tenants already loaded with IsActive filter
+                    var newRoomActiveTenants = newRoom.Tenants.Count(t => t.IsActive);
+                    if (newRoomActiveTenants >= newRoom.TotalBeds)
                     {
-                        return (false, "New room is full", null, new List<string> { "No available beds in the new room" });
+                        return (false, "New room is full", null, new List<string> { $"New room is at full capacity ({newRoomActiveTenants}/{newRoom.TotalBeds} beds occupied)" });
                     }
 
                     // Update old room
@@ -410,9 +413,21 @@ namespace PgManager.Services
                     return (false, "Tenant not found", null, new List<string> { "Tenant does not exist" });
                 }
 
+                // Validate payment amount
+                if (updatePaymentDto.PaidAmount <= 0)
+                {
+                    return (false, "Invalid payment", null, new List<string> { "Payment amount must be greater than 0" });
+                }
+
                 // Capture current total due before updating any dates
                 // CurrentDue includes both stored DueAmount and time-based rent
                 var totalDueBeforePayment = tenant.CurrentDue;
+
+                if (updatePaymentDto.PaidAmount > totalDueBeforePayment)
+                {
+                    return (false, "Overpayment not allowed", null,
+                        new List<string> { $"Payment amount (₹{updatePaymentDto.PaidAmount}) cannot exceed current due (₹{totalDueBeforePayment})" });
+                }
 
                 tenant.LastPaidDate = updatePaymentDto.PaymentDate;
                 tenant.DueAmount = totalDueBeforePayment - updatePaymentDto.PaidAmount;
