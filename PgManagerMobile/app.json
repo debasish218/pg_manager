@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "PgManagerMobile",
+    "slug": "PgManagerMobile",
+    "scheme": "pg-manager",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "enabled": false
+    }
+  }
+}
