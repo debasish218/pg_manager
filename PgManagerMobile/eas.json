@@ -1,0 +1,32 @@
+{
+    "cli": {
+        "version": ">= 16.0.0"
+    },
+    "build": {
+        "preview": {
+            "android": {
+                "buildType": "apk"
+            },
+            "credentialsSource": "local"
+        },
+        "preview-slim": {
+            "android": {
+                "buildType": "apk",
+                "gradleCommand": ":app:assembleRelease",
+                "withoutCredentials": false
+            },
+            "credentialsSource": "local",
+            "env": {
+                "EXPO_NO_STATIC_ANALYSIS": "1"
+            }
+        },
+        "production": {
+            "android": {
+                "buildType": "app-bundle"
+            }
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}

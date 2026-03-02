@@ -1,23 +1,36 @@
 {
   "expo": {
-    "name": "PgManagerMobile",
+    "name": "PG Manager",
     "slug": "PgManagerMobile",
     "scheme": "pg-manager",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "owner": "debasish218",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.debasish218.pgmanager"
     },
-    "android": {},
+    "android": {
+      "package": "com.debasish218.pgmanager",
+      "versionCode": 1
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "updates": {
       "enabled": false
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4c02aa59-4113-46d1-81f6-73b6b0ff82d2"
+      }
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ]
   }
 }

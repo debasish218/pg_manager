@@ -1,17 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants/theme';
+import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
+import { storage } from '../utils/storage';
+import { updateBaseUrl } from '../api/api';
 
 const LoginScreen = () => {
-    const { login, setup } = useAuth();
+    const { login, googleLogin, setup } = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [isSetupMode, setIsSetupMode] = useState(false);
-    const [setupData, setSetupData] = useState(null); // { secret, qrCodeUri }
+    const [setupData, setSetupData] = useState(null);
+    const [showServerSettings, setShowServerSettings] = useState(false);
+    const [serverUrl, setServerUrl] = useState('');
+
+    useEffect(() => {
+        // Initialize Google Sign-In
+        // IMPORTANT: Replace 'YOUR_WEB_CLIENT_ID' with the actual Web Client ID from Google Cloud Console
+        GoogleSignin.configure({
+            webClientId: '332354431868-olh119rr1vdrk0fo7csavp492ndf42he.apps.googleusercontent.com',
+            offlineAccess: false,
+        });
+
+        storage.getIP().then(saved => {
+            if (saved) setServerUrl(saved);
+        });
+    }, []);
+
+    const handleSaveServer = async () => {
+        const trimmed = serverUrl.trim();
+        if (!trimmed) {
+            Alert.alert('Error', 'Please enter a server IP or URL');
+            return;
+        }
+        await storage.saveIP(trimmed);
+        const url = (trimmed.startsWith('http://') || trimmed.startsWith('https://'))
+            ? trimmed.replace(/\/+$/, '') + '/api'
+            : `http://${trimmed}:5294/api`;
+        updateBaseUrl(url);
+        Alert.alert('✅ Saved', `Connected to:\n${url}`);
+        setShowServerSettings(false);
+    };
 
     const handleLogin = async () => {
         if (!phoneNumber || !code) {
@@ -25,6 +59,32 @@ const LoginScreen = () => {
 
         if (!result.success) {
             Alert.alert('Login Failed', result.message);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            setLoading(true);
+            await GoogleSignin.hasPlayServices();
+            await GoogleSignin.signOut(); // Clear cached account so picker always shows
+            const userInfo = await GoogleSignin.signIn();
+
+            // Handle different versions of google-signin package returns
+            const idToken = userInfo.data?.idToken || userInfo.idToken;
+
+            if (!idToken) {
+                throw new Error("No Google token received");
+            }
+
+            const result = await googleLogin(idToken);
+            if (!result.success) {
+                Alert.alert('Google Login Failed', result.message);
+            }
+        } catch (error) {
+            console.error('Google Sign-In Error:', error);
+            Alert.alert('Google Login Error', error.message || 'An error occurred during Google Sign-In.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -63,6 +123,7 @@ const LoginScreen = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Phone Number"
+                    placeholderTextColor={COLORS.textSecondary || '#999'}
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
                     keyboardType="phone-pad"
@@ -85,6 +146,7 @@ const LoginScreen = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Authenticator Code (6 digits)"
+                    placeholderTextColor={COLORS.textSecondary || '#999'}
                     value={code}
                     onChangeText={setCode}
                     keyboardType="number-pad"
@@ -98,6 +160,20 @@ const LoginScreen = () => {
                 >
                     {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
                 </TouchableOpacity>
+
+                <View style={styles.orDivider}>
+                    <View style={styles.orLine} />
+                    <Text style={styles.orText}>OR</Text>
+                    <View style={styles.orLine} />
+                </View>
+
+                <GoogleSigninButton
+                    style={{ width: '100%', height: 50, marginTop: 10 }}
+                    size={GoogleSigninButton.Size.Wide}
+                    color={GoogleSigninButton.Color.Light}
+                    onPress={handleGoogleLogin}
+                    disabled={loading}
+                />
 
                 <TouchableOpacity
                     style={[styles.linkButton, { marginTop: 20 }]}
@@ -119,6 +195,38 @@ const LoginScreen = () => {
                     >
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Generate Secret</Text>}
                     </TouchableOpacity>
+                )}
+
+                {/* Server Settings — accessible before login */}
+                <TouchableOpacity
+                    style={styles.serverToggle}
+                    onPress={() => setShowServerSettings(!showServerSettings)}
+                >
+                    <Ionicons name="settings-outline" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.serverToggleText}>Server Settings</Text>
+                    <Ionicons
+                        name={showServerSettings ? 'chevron-up' : 'chevron-down'}
+                        size={14}
+                        color={COLORS.textSecondary}
+                    />
+                </TouchableOpacity>
+
+                {showServerSettings && (
+                    <View style={styles.serverBox}>
+                        <Text style={styles.serverLabel}>Backend IP or ngrok URL</Text>
+                        <TextInput
+                            style={styles.serverInput}
+                            value={serverUrl}
+                            onChangeText={setServerUrl}
+                            placeholder="192.168.1.70  or  https://abc.ngrok-free.app"
+                            placeholderTextColor={COLORS.textSecondary + '80'}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                        <TouchableOpacity style={styles.serverSaveBtn} onPress={handleSaveServer}>
+                            <Text style={styles.serverSaveBtnText}>Save & Connect</Text>
+                        </TouchableOpacity>
+                    </View>
                 )}
             </View>
         </KeyboardAvoidingView>
@@ -175,6 +283,22 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
         textDecorationLine: 'underline',
     },
+    orDivider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 15,
+    },
+    orLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: COLORS.border,
+    },
+    orText: {
+        width: 40,
+        textAlign: 'center',
+        color: COLORS.textSecondary,
+        fontWeight: 'bold',
+    },
     setupContainer: {
         marginBottom: 15,
         alignItems: 'center',
@@ -196,7 +320,54 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#666',
         textAlign: 'center'
-    }
+    },
+    serverToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        marginTop: 24,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
+    },
+    serverToggleText: {
+        fontSize: 13,
+        color: COLORS.textSecondary,
+    },
+    serverBox: {
+        marginTop: 12,
+        backgroundColor: COLORS.background,
+        borderRadius: 8,
+        padding: 14,
+        gap: 10,
+    },
+    serverLabel: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    serverInput: {
+        backgroundColor: COLORS.white,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 14,
+        color: COLORS.text,
+    },
+    serverSaveBtn: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 8,
+        padding: 12,
+        alignItems: 'center',
+    },
+    serverSaveBtnText: {
+        color: COLORS.white,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
 });
 
 export default LoginScreen;

@@ -350,3 +350,9 @@ C:/code/PgManager/PgManager/obj/Debug/net8.0/staticwebassets.upToDateCheck.txt
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/PgManager.genruntimeconfig.cache
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/ref/PgManager.dll
 /home/zadmin/Documents/pg_manager/PgManager/obj/Debug/net8.0/PgManager.sourcelink.json
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/Google.Apis.dll
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/Google.Apis.Auth.dll
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/Google.Apis.Core.dll
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/Newtonsoft.Json.dll
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/System.Management.dll
+/home/zadmin/Documents/pg_manager/PgManager/bin/Debug/net8.0/runtimes/win/lib/net7.0/System.Management.dll

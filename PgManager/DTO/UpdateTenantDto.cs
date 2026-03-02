@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PgManager.DTOs.Tenant
 {
@@ -11,13 +11,12 @@ namespace PgManager.DTOs.Tenant
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be 10 digits")]
         public string? PhoneNumber { get; set; }
 
-        [Range(1, 1000000)]
-        public int? RentAmount { get; set; }
-
         [Range(0, 1000000)]
         public int? AdvanceAmount { get; set; }
 
         public DateTime? LastPaidDate { get; set; }
+
+        public DateTime? JoinDate { get; set; }
 
         public bool? IsActive { get; set; }
 

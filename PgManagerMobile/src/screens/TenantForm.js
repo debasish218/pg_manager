@@ -27,15 +27,13 @@ const FormInput = ({ label, value, onChangeText, placeholder, keyboardType = 'de
 );
 
 const TenantForm = ({ route, navigation }) => {
-    const { fetchTenants, fetchRooms } = useAppContext();
+    const { fetchTenants, fetchRooms, fetchOverdueTenants } = useAppContext();
     const { tenant, roomId } = route.params || {};
     const isEdit = !!tenant;
 
     const [formData, setFormData] = useState({
         name: tenant?.name || '',
         phoneNumber: tenant?.phoneNumber || '',
-        sharingType: tenant?.sharingType || '',
-        rentAmount: tenant?.rentAmount?.toString() || '',
         advanceAmount: tenant?.advanceAmount?.toString() || '',
         joinDate: tenant?.joinDate || new Date().toISOString(),
         // New tenants have no payment record — null means N/A
@@ -44,6 +42,10 @@ const TenantForm = ({ route, navigation }) => {
         roomId: roomId || tenant?.roomId,
         dueAmount: tenant?.dueAmount?.toString() || '0',
     });
+
+    // Display-only: show room rent for user info (not submitted to API)
+    const [displayRent, setDisplayRent] = useState(tenant?.rentAmount?.toString() || '');
+    const [displaySharingType, setDisplaySharingType] = useState(tenant?.sharingType || '');
 
     // Room change state (edit mode only)
     const [currentRoom, setCurrentRoom] = useState(null);
@@ -61,16 +63,8 @@ const TenantForm = ({ route, navigation }) => {
                     const response = await roomApi.getById(roomId);
                     if (response.data.success) {
                         const room = response.data.data;
-                        const sharingTypeMap = {
-                            'Single': 1, 'Double': 2, 'Triple': 3,
-                            'Four': 4, 'Five': 5, 'Six': 6
-                        };
-                        const sharingTypeNumber = sharingTypeMap[room.sharingType] || room.totalBeds;
-                        setFormData(prev => ({
-                            ...prev,
-                            sharingType: sharingTypeNumber.toString(),
-                            rentAmount: room.rentPerBed?.toString() || prev.rentAmount,
-                        }));
+                        setDisplaySharingType(room.sharingType);
+                        setDisplayRent(room.rentPerBed?.toString() || '');
                     }
                 } catch (error) {
                     console.error('Error fetching room details:', error);
@@ -91,11 +85,8 @@ const TenantForm = ({ route, navigation }) => {
                         const cur = response.data.data.find(r => r.id === tenant.roomId);
                         if (cur) {
                             setCurrentRoom(cur);
-                            // Update rentAmount to match the room's current rentPerBed
-                            setFormData(prev => ({
-                                ...prev,
-                                rentAmount: cur.rentPerBed?.toString() || prev.rentAmount,
-                            }));
+                            // Show the room's current rent for user info
+                            setDisplayRent(cur.rentPerBed?.toString() || '');
                         }
                     }
                 } catch (e) {
@@ -172,10 +163,9 @@ const TenantForm = ({ route, navigation }) => {
                             setFormData(prev => ({
                                 ...prev,
                                 roomId: targetRoom.id,
-                                // Auto-update rent to new room's rentPerBed
-                                rentAmount: targetRoom.rentPerBed?.toString() || prev.rentAmount,
                             }));
                             setCurrentRoom(targetRoom);
+                            setDisplayRent(targetRoom.rentPerBed?.toString() || '');
                             setNewRoomNumber('');
                             Alert.alert(
                                 'Room Selected',
@@ -204,9 +194,26 @@ const TenantForm = ({ route, navigation }) => {
             return;
         }
 
-        if (parseInt(formData.rentAmount) <= 0) {
-            Alert.alert("Invalid Rent", "Monthly rent must be greater than ₹0.");
+        // Date validations
+        const today = new Date();
+        today.setHours(23, 59, 59, 999); // end of today
+
+        const joinDate = new Date(formData.joinDate);
+        if (joinDate > today) {
+            Alert.alert("Invalid Joining Date", "Joining date cannot be a future date.");
             return;
+        }
+
+        if (formData.lastPaidDate) {
+            const lastPaid = new Date(formData.lastPaidDate);
+            if (lastPaid > today) {
+                Alert.alert("Invalid Payment Date", "Last payment date cannot be a future date.");
+                return;
+            }
+            if (lastPaid < new Date(formData.joinDate)) {
+                Alert.alert("Invalid Payment Date", "Last payment date cannot be before the joining date.");
+                return;
+            }
         }
 
         const advanceNum = formData.advanceAmount ? parseInt(formData.advanceAmount) : 0;
@@ -223,9 +230,7 @@ const TenantForm = ({ route, navigation }) => {
 
         const data = {
             ...formData,
-            rentAmount: parseInt(formData.rentAmount),
             advanceAmount: formData.advanceAmount ? parseInt(formData.advanceAmount) : 0,
-            sharingType: parseInt(formData.sharingType),
             lastPaidDate: formData.lastPaidDate || null,
             dueAmount: parseInt(formData.dueAmount) || 0,
         };
@@ -239,9 +244,8 @@ const TenantForm = ({ route, navigation }) => {
             }
 
             if (response.data.success) {
-                // Refresh global state
-                await fetchTenants();
-                await fetchRooms();
+                // Refresh all data in parallel
+                await Promise.all([fetchTenants(), fetchRooms(), fetchOverdueTenants()]);
 
                 Alert.alert("Success", `Tenant ${isEdit ? 'updated' : 'added'} successfully`);
                 navigation.goBack();
@@ -293,7 +297,7 @@ const TenantForm = ({ route, navigation }) => {
                         {/* Monthly Rent is auto-filled from the room's rentPerBed — not editable by user */}
                         <FormInput
                             label="Monthly Rent (from room)"
-                            value={formData.rentAmount ? `₹${parseInt(formData.rentAmount).toLocaleString()}` : 'Loading...'}
+                            value={displayRent ? `₹${parseInt(displayRent).toLocaleString()}` : 'Loading...'}
                             onChangeText={() => { }}
                             placeholder="Auto-filled from room"
                             keyboardType="numeric"

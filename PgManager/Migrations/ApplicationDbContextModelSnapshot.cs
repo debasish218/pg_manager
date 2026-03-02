@@ -54,12 +54,15 @@ namespace PgManager.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomNumber")
+                    b.HasIndex("UserId", "RoomNumber")
                         .IsUnique();
 
-                    b.ToTable("Rooms", (string)null);
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("PgManager.Entities.Tenant", b =>
@@ -98,17 +101,14 @@ namespace PgManager.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("varchar(15)");
 
-                    b.Property<int>("RentAmount")
-                        .HasColumnType("int");
-
                     b.Property<int>("RoomId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SharingType")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -122,7 +122,9 @@ namespace PgManager.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("Tenants", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Tenants");
                 });
 
             modelBuilder.Entity("PgManager.Entities.User", b =>
@@ -133,11 +135,17 @@ namespace PgManager.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Email")
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PhoneNumber")
+                    b.Property<string>("PgName")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("Role")
@@ -149,10 +157,24 @@ namespace PgManager.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PgManager.Entities.Room", b =>
+                {
+                    b.HasOne("PgManager.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PgManager.Entities.Tenant", b =>
@@ -163,7 +185,15 @@ namespace PgManager.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PgManager.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Room");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PgManager.Entities.Room", b =>

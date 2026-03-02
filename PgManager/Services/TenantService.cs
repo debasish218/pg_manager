@@ -15,6 +15,28 @@ namespace PgManager.Services
             _context = context;
         }
 
+        // Helper: build TenantDto from entity — rent and sharing type come from Room
+        private static TenantDto ToDto(Tenant t) => new TenantDto
+        {
+            Id = t.Id,
+            Name = t.Name,
+            PhoneNumber = t.PhoneNumber,
+            SharingType = t.Room?.SharingType.ToString() ?? "",
+            RoomId = t.RoomId,
+            RoomNumber = t.Room?.RoomNumber ?? 0,
+            RentAmount = t.Room?.RentPerBed ?? 0,
+            AdvanceAmount = t.AdvanceAmount,
+            JoinDate = t.JoinDate,
+            LastPaidDate = t.LastPaidDate,
+            IsActive = t.IsActive,
+            DaysSinceLastPayment = t.DaysSinceLastPayment,
+            IsOverdue = t.IsOverdue,
+            DueAmount = t.DueAmount,
+            CurrentDue = t.CurrentDue,
+            MonthsElapsed = t.MonthsElapsed,
+            CreatedAt = t.CreatedAt
+        };
+
         public async Task<(bool Success, string Message, IEnumerable<TenantDto>? Data, List<string>? Errors)> GetAllTenantsAsync(
             int userId,
             string? searchTerm = null,
@@ -28,19 +50,17 @@ namespace PgManager.Services
                     .Include(t => t.Room)
                     .AsQueryable();
 
-                // Search by name or phone number
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     query = query.Where(t => t.Name.Contains(searchTerm) || t.PhoneNumber.Contains(searchTerm));
                 }
 
-                // Filter by sharing type
+                // Filter by sharing type — derived from room
                 if (sharingType.HasValue)
                 {
-                    query = query.Where(t => (int)t.SharingType == sharingType.Value);
+                    query = query.Where(t => (int)t.Room.SharingType == sharingType.Value);
                 }
 
-                // Filter by active status
                 if (isActive.HasValue)
                 {
                     query = query.Where(t => t.IsActive == isActive.Value);
@@ -48,34 +68,13 @@ namespace PgManager.Services
 
                 var tenants = await query.ToListAsync();
 
-                // Sort: Active tenants first, then by due amount descending (highest due first)
                 var sortedTenants = tenants
                     .OrderByDescending(t => t.IsActive)
                     .ThenByDescending(t => t.DueAmount)
+                    .Select(ToDto)
                     .ToList();
 
-                var tenantDtos = sortedTenants.Select(t => new TenantDto
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    PhoneNumber = t.PhoneNumber,
-                    SharingType = t.SharingType.ToString(),
-                    RoomId = t.RoomId,
-                    RoomNumber = t.Room?.RoomNumber ?? 0,
-                    RentAmount = t.RentAmount,
-                    AdvanceAmount = t.AdvanceAmount,
-                    JoinDate = t.JoinDate,
-                    LastPaidDate = t.LastPaidDate,
-                    IsActive = t.IsActive,
-                    DaysSinceLastPayment = t.DaysSinceLastPayment,
-                    IsOverdue = t.IsOverdue,
-                    DueAmount = t.DueAmount,
-                    CurrentDue = t.CurrentDue,
-                    MonthsElapsed = t.MonthsElapsed,
-                    CreatedAt = t.CreatedAt
-                }).ToList();
-
-                return (true, "Tenants retrieved successfully", tenantDtos, null);
+                return (true, "Tenants retrieved successfully", sortedTenants, null);
             }
             catch (Exception ex)
             {
@@ -93,32 +92,9 @@ namespace PgManager.Services
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (tenant == null)
-                {
                     return (false, "Tenant not found", null, new List<string> { "Tenant does not exist" });
-                }
 
-                var tenantDto = new TenantDto
-                {
-                    Id = tenant.Id,
-                    Name = tenant.Name,
-                    PhoneNumber = tenant.PhoneNumber,
-                    SharingType = tenant.SharingType.ToString(),
-                    RoomId = tenant.RoomId,
-                    RoomNumber = tenant.Room?.RoomNumber ?? 0,
-                    RentAmount = tenant.RentAmount,
-                    AdvanceAmount = tenant.AdvanceAmount,
-                    JoinDate = tenant.JoinDate,
-                    LastPaidDate = tenant.LastPaidDate,
-                    IsActive = tenant.IsActive,
-                    DaysSinceLastPayment = tenant.DaysSinceLastPayment,
-                    IsOverdue = tenant.IsOverdue,
-                    DueAmount = tenant.DueAmount,
-                    CurrentDue = tenant.CurrentDue,
-                    MonthsElapsed = tenant.MonthsElapsed,
-                    CreatedAt = tenant.CreatedAt
-                };
-
-                return (true, "Tenant retrieved successfully", tenantDto, null);
+                return (true, "Tenant retrieved successfully", ToDto(tenant), null);
             }
             catch (Exception ex)
             {
@@ -136,28 +112,10 @@ namespace PgManager.Services
                     .Where(t => t.IsActive)
                     .ToListAsync();
 
-                // Filter overdue tenants and sort by days overdue
                 var overdueTenants = tenants
                     .Where(t => t.IsOverdue)
                     .OrderByDescending(t => t.DaysSinceLastPayment)
-                    .Select(t => new TenantDto
-                    {
-                        Id = t.Id,
-                        Name = t.Name,
-                        PhoneNumber = t.PhoneNumber,
-                        SharingType = t.SharingType.ToString(),
-                        RoomId = t.RoomId,
-                        RoomNumber = t.Room?.RoomNumber ?? 0,
-                        RentAmount = t.RentAmount,
-                        AdvanceAmount = t.AdvanceAmount,
-                        JoinDate = t.JoinDate,
-                        LastPaidDate = t.LastPaidDate,
-                        IsActive = t.IsActive,
-                        DaysSinceLastPayment = t.DaysSinceLastPayment,
-                        IsOverdue = t.IsOverdue,
-                        DueAmount = t.DueAmount,
-                        CreatedAt = t.CreatedAt
-                    })
+                    .Select(ToDto)
                     .ToList();
 
                 return (true, "Overdue tenants retrieved successfully", overdueTenants, null);
@@ -168,7 +126,7 @@ namespace PgManager.Services
             }
         }
 
-        public async Task<(bool Success, string Message, TenantDto? Data, List<string>? Errors)> CreateTenantAsync(int userId, CreateTenantDto createTenantDto)
+        public async Task<(bool Success, string Message, TenantDto? Data, List<string>? Errors)> CreateTenantAsync(int userId, CreateTenantDto dto)
         {
             try
             {
@@ -176,79 +134,45 @@ namespace PgManager.Services
                 var room = await _context.Rooms
                     .Where(r => r.UserId == userId)
                     .Include(r => r.Tenants.Where(t => t.IsActive))
-                    .FirstOrDefaultAsync(r => r.Id == createTenantDto.RoomId);
+                    .FirstOrDefaultAsync(r => r.Id == dto.RoomId);
 
                 if (room == null)
-                {
                     return (false, "Room not found", null, new List<string> { "Room does not exist" });
-                }
 
-                // Check if room has available beds (live count from included active tenants)
+                // Check capacity
                 var activeTenantCount = room.Tenants.Count(t => t.IsActive);
                 if (activeTenantCount >= room.TotalBeds)
-                {
                     return (false, "Room is full", null, new List<string> { $"Room is at full capacity ({activeTenantCount}/{room.TotalBeds} beds occupied)" });
-                }
-
-                // Verify sharing type matches room
-                if ((int)room.SharingType != createTenantDto.SharingType)
-                {
-                    return (false, "Sharing type mismatch", null,
-                        new List<string> { $"Room sharing type is {room.SharingType}" });
-                }
 
                 var tenant = new Tenant
                 {
                     UserId = userId,
-                    Name = createTenantDto.Name,
-                    PhoneNumber = createTenantDto.PhoneNumber,
-                    SharingType = (SharingType)createTenantDto.SharingType,
-                    RoomId = createTenantDto.RoomId,
-                    RentAmount = createTenantDto.RentAmount,
-                    AdvanceAmount = createTenantDto.AdvanceAmount,
-                    JoinDate = createTenantDto.JoinDate,
-                    LastPaidDate = createTenantDto.LastPaidDate, // null = no payment made yet
-                    IsActive = createTenantDto.IsActive,
-                    DueAmount = createTenantDto.DueAmount,
+                    Name = dto.Name,
+                    PhoneNumber = dto.PhoneNumber,
+                    RoomId = dto.RoomId,
+                    AdvanceAmount = dto.AdvanceAmount,
+                    JoinDate = dto.JoinDate,
+                    LastPaidDate = dto.LastPaidDate,
+                    IsActive = dto.IsActive,
+                    DueAmount = dto.DueAmount,
                     CreatedAt = DateTime.UtcNow
                 };
-                
+
                 _context.Tenants.Add(tenant);
                 await _context.SaveChangesAsync();
 
-                // Reload to get updated room info
+                // Reload to get room info
                 await _context.Entry(tenant).Reference(t => t.Room).LoadAsync();
 
-                var tenantDto = new TenantDto
-                {
-                    Id = tenant.Id,
-                    Name = tenant.Name,
-                    PhoneNumber = tenant.PhoneNumber,
-                    SharingType = tenant.SharingType.ToString(),
-                    RoomId = tenant.RoomId,
-                    RoomNumber = tenant.Room.RoomNumber,
-                    RentAmount = tenant.RentAmount,
-                    AdvanceAmount = tenant.AdvanceAmount,
-                    JoinDate = tenant.JoinDate,
-                    LastPaidDate = tenant.LastPaidDate,
-                    IsActive = tenant.IsActive,
-                    DaysSinceLastPayment = tenant.DaysSinceLastPayment,
-                    IsOverdue = tenant.IsOverdue,
-                    DueAmount = tenant.DueAmount,
-                    CurrentDue = tenant.CurrentDue,
-                    MonthsElapsed = tenant.MonthsElapsed,
-                    CreatedAt = tenant.CreatedAt
-                };
-
-                return (true, "Tenant updated successfully", tenantDto, null);
+                return (true, "Tenant created successfully", ToDto(tenant), null);
             }
             catch (Exception ex)
             {
-                return (false, "Error updating tenant", null, new List<string> { ex.Message });
+                return (false, "Error creating tenant", null, new List<string> { ex.Message });
             }
         }
 
-        public async Task<(bool Success, string Message, TenantDto? Data, List<string>? Errors)> UpdateTenantAsync(int userId, int id, UpdateTenantDto updateTenantDto)
+        public async Task<(bool Success, string Message, TenantDto? Data, List<string>? Errors)> UpdateTenantAsync(int userId, int id, UpdateTenantDto dto)
         {
             try
             {
@@ -258,33 +182,25 @@ namespace PgManager.Services
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (tenant == null)
-                {
                     return (false, "Tenant not found", null, new List<string> { "Tenant does not exist" });
-                }
 
                 var oldRoomId = tenant.RoomId;
                 var wasActive = tenant.IsActive;
 
                 // Handle room change
-                if (updateTenantDto.RoomId.HasValue && updateTenantDto.RoomId.Value != tenant.RoomId)
+                if (dto.RoomId.HasValue && dto.RoomId.Value != tenant.RoomId)
                 {
                     var newRoom = await _context.Rooms
                         .Include(r => r.Tenants.Where(t => t.IsActive))
-                        .FirstOrDefaultAsync(r => r.Id == updateTenantDto.RoomId.Value);
+                        .FirstOrDefaultAsync(r => r.Id == dto.RoomId.Value);
 
                     if (newRoom == null)
-                    {
                         return (false, "New room not found", null, new List<string> { "New room does not exist" });
-                    }
 
-                    // Live count: newRoom.Tenants already loaded with IsActive filter
                     var newRoomActiveTenants = newRoom.Tenants.Count(t => t.IsActive);
                     if (newRoomActiveTenants >= newRoom.TotalBeds)
-                    {
                         return (false, "New room is full", null, new List<string> { $"New room is at full capacity ({newRoomActiveTenants}/{newRoom.TotalBeds} beds occupied)" });
-                    }
 
-                    // Update old room
                     var oldRoom = await _context.Rooms.FindAsync(oldRoomId);
                     if (oldRoom != null && tenant.IsActive)
                     {
@@ -292,106 +208,64 @@ namespace PgManager.Services
                         oldRoom.UpdatedAt = DateTime.UtcNow;
                     }
 
-                    // Update new room
                     if (tenant.IsActive)
                     {
                         newRoom.OccupiedBeds++;
                         newRoom.UpdatedAt = DateTime.UtcNow;
                     }
 
-                    tenant.RoomId = updateTenantDto.RoomId.Value;
+                    tenant.RoomId = dto.RoomId.Value;
                 }
 
                 // Handle IsActive change
-                if (updateTenantDto.IsActive.HasValue && updateTenantDto.IsActive.Value != wasActive)
+                if (dto.IsActive.HasValue && dto.IsActive.Value != wasActive)
                 {
                     var room = await _context.Rooms.FindAsync(tenant.RoomId);
                     if (room != null)
                     {
-                        if (updateTenantDto.IsActive.Value && !wasActive)
+                        if (dto.IsActive.Value && !wasActive)
                         {
-                            // Activating tenant
                             if (room.OccupiedBeds >= room.TotalBeds)
-                            {
-                                return (false, "Room is full", null,
-                                    new List<string> { "Cannot activate tenant - no available beds" });
-                            }
+                                return (false, "Room is full", null, new List<string> { "Cannot activate tenant - no available beds" });
                             room.OccupiedBeds++;
                         }
-                        else if (!updateTenantDto.IsActive.Value && wasActive)
+                        else if (!dto.IsActive.Value && wasActive)
                         {
-                            // Deactivating tenant
                             room.OccupiedBeds--;
                         }
                         room.UpdatedAt = DateTime.UtcNow;
                     }
-                    tenant.IsActive = updateTenantDto.IsActive.Value;
+                    tenant.IsActive = dto.IsActive.Value;
                 }
 
-                // Update other fields
-                if (!string.IsNullOrWhiteSpace(updateTenantDto.Name))
-                {
-                    tenant.Name = updateTenantDto.Name;
-                }
+                if (!string.IsNullOrWhiteSpace(dto.Name))
+                    tenant.Name = dto.Name;
 
-                if (!string.IsNullOrWhiteSpace(updateTenantDto.PhoneNumber))
-                {
-                    tenant.PhoneNumber = updateTenantDto.PhoneNumber;
-                }
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                    tenant.PhoneNumber = dto.PhoneNumber;
 
-                if (updateTenantDto.RentAmount.HasValue)
-                {
-                    tenant.RentAmount = updateTenantDto.RentAmount.Value;
-                }
+                if (dto.AdvanceAmount.HasValue)
+                    tenant.AdvanceAmount = dto.AdvanceAmount.Value;
 
-                if (updateTenantDto.AdvanceAmount.HasValue)
-                {
-                    tenant.AdvanceAmount = updateTenantDto.AdvanceAmount.Value;
-                }
+                if (dto.JoinDate.HasValue)
+                    tenant.JoinDate = dto.JoinDate.Value;
 
-                if (updateTenantDto.LastPaidDate.HasValue)
+                if (dto.LastPaidDate.HasValue)
                 {
-                    // If date changed, reset the stored due amount so calculation starts fresh from this new date
-                    if (tenant.LastPaidDate != updateTenantDto.LastPaidDate.Value)
-                    {
+                    if (tenant.LastPaidDate != dto.LastPaidDate.Value)
                         tenant.DueAmount = 0;
-                    }
-                    tenant.LastPaidDate = updateTenantDto.LastPaidDate.Value;
+                    tenant.LastPaidDate = dto.LastPaidDate.Value;
                 }
 
-                if (updateTenantDto.DueAmount.HasValue)
-                {
-                    tenant.DueAmount = updateTenantDto.DueAmount.Value;
-                }
+                if (dto.DueAmount.HasValue)
+                    tenant.DueAmount = dto.DueAmount.Value;
 
                 tenant.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                // Reload to get updated room info
                 await _context.Entry(tenant).Reference(t => t.Room).LoadAsync();
 
-                var tenantDto = new TenantDto
-                {
-                    Id = tenant.Id,
-                    Name = tenant.Name,
-                    PhoneNumber = tenant.PhoneNumber,
-                    SharingType = tenant.SharingType.ToString(),
-                    RoomId = tenant.RoomId,
-                    RoomNumber = tenant.Room.RoomNumber,
-                    RentAmount = tenant.RentAmount,
-                    AdvanceAmount = tenant.AdvanceAmount,
-                    JoinDate = tenant.JoinDate,
-                    LastPaidDate = tenant.LastPaidDate,
-                    IsActive = tenant.IsActive,
-                    DaysSinceLastPayment = tenant.DaysSinceLastPayment,
-                    IsOverdue = tenant.IsOverdue,
-                    DueAmount = tenant.DueAmount,
-                    CurrentDue = tenant.CurrentDue,
-                    MonthsElapsed = tenant.MonthsElapsed,
-                    CreatedAt = tenant.CreatedAt
-                };
-
-                return (true, "Tenant updated successfully", tenantDto, null);
+                return (true, "Tenant updated successfully", ToDto(tenant), null);
             }
             catch (Exception ex)
             {
@@ -409,25 +283,16 @@ namespace PgManager.Services
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (tenant == null)
-                {
                     return (false, "Tenant not found", null, new List<string> { "Tenant does not exist" });
-                }
 
-                // Validate payment amount
                 if (updatePaymentDto.PaidAmount <= 0)
-                {
                     return (false, "Invalid payment", null, new List<string> { "Payment amount must be greater than 0" });
-                }
 
-                // Capture current total due before updating any dates
-                // CurrentDue includes both stored DueAmount and time-based rent
                 var totalDueBeforePayment = tenant.CurrentDue;
 
                 if (updatePaymentDto.PaidAmount > totalDueBeforePayment)
-                {
                     return (false, "Overpayment not allowed", null,
                         new List<string> { $"Payment amount (₹{updatePaymentDto.PaidAmount}) cannot exceed current due (₹{totalDueBeforePayment})" });
-                }
 
                 tenant.LastPaidDate = updatePaymentDto.PaymentDate;
                 tenant.DueAmount = totalDueBeforePayment - updatePaymentDto.PaidAmount;
@@ -435,28 +300,7 @@ namespace PgManager.Services
 
                 await _context.SaveChangesAsync();
 
-                var tenantDto = new TenantDto
-                {
-                    Id = tenant.Id,
-                    Name = tenant.Name,
-                    PhoneNumber = tenant.PhoneNumber,
-                    SharingType = tenant.SharingType.ToString(),
-                    RoomId = tenant.RoomId,
-                    RoomNumber = tenant.Room.RoomNumber,
-                    RentAmount = tenant.RentAmount,
-                    AdvanceAmount = tenant.AdvanceAmount,
-                    JoinDate = tenant.JoinDate,
-                    LastPaidDate = tenant.LastPaidDate,
-                    IsActive = tenant.IsActive,
-                    DaysSinceLastPayment = tenant.DaysSinceLastPayment,
-                    IsOverdue = tenant.IsOverdue,
-                    DueAmount = tenant.DueAmount,
-                    CurrentDue = tenant.CurrentDue,
-                    MonthsElapsed = tenant.MonthsElapsed,
-                    CreatedAt = tenant.CreatedAt
-                };
-
-                return (true, "Payment updated successfully", tenantDto, null);
+                return (true, "Payment updated successfully", ToDto(tenant), null);
             }
             catch (Exception ex)
             {
@@ -474,11 +318,8 @@ namespace PgManager.Services
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (tenant == null)
-                {
                     return (false, "Tenant not found", new List<string> { "Tenant does not exist" });
-                }
 
-                // Update room occupied beds if tenant was active
                 if (tenant.IsActive)
                 {
                     var room = await _context.Rooms.FindAsync(tenant.RoomId);

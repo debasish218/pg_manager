@@ -1,13 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, Modal, TouchableOpacity,
-    ScrollView, Dimensions
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SHADOWS, SIZES } from '../constants/theme';
-
-const ITEM_HEIGHT = 48;
-const VISIBLE_ITEMS = 5;
-const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -18,63 +14,34 @@ function daysInMonth(month, year) {
     return new Date(year, month, 0).getDate();
 }
 
-function range(start, end) {
-    const arr = [];
-    for (let i = start; i <= end; i++) arr.push(i);
-    return arr;
-}
-
-// A single column scroll picker
-const Column = ({ items, selectedIndex, onChange, formatItem }) => {
-    const scrollRef = useRef(null);
-
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTo({ y: selectedIndex * ITEM_HEIGHT, animated: false });
-        }
-    }, [selectedIndex]);
-
-    const handleScrollEnd = (e) => {
-        const y = e.nativeEvent.contentOffset.y;
-        const index = Math.round(y / ITEM_HEIGHT);
-        const clamped = Math.max(0, Math.min(index, items.length - 1));
-        onChange(clamped);
-        // Snap
-        scrollRef.current?.scrollTo({ y: clamped * ITEM_HEIGHT, animated: true });
-    };
-
-    return (
-        <View style={styles.column}>
-            {/* Selection highlight */}
-            <View style={styles.selectionHighlight} pointerEvents="none" />
-            <ScrollView
-                ref={scrollRef}
-                showsVerticalScrollIndicator={false}
-                snapToInterval={ITEM_HEIGHT}
-                decelerationRate="fast"
-                onMomentumScrollEnd={handleScrollEnd}
-                onScrollEndDrag={handleScrollEnd}
-                contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
-            >
-                {items.map((item, idx) => (
-                    <View key={idx} style={styles.item}>
-                        <Text style={[
-                            styles.itemText,
-                            idx === selectedIndex && styles.itemTextSelected
-                        ]}>
-                            {formatItem ? formatItem(item) : String(item).padStart(2, '0')}
-                        </Text>
-                    </View>
-                ))}
-            </ScrollView>
+// A single stepper column: label + up/down arrows
+const Stepper = ({ label, value, onIncrement, onDecrement }) => (
+    <View style={styles.stepper}>
+        <TouchableOpacity
+            style={styles.stepBtn}
+            onPress={onIncrement}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+            <Ionicons name="chevron-up" size={22} color={COLORS.primary} />
+        </TouchableOpacity>
+        <View style={styles.stepValueBox}>
+            <Text style={styles.stepValue}>{label}</Text>
         </View>
-    );
-};
+        <TouchableOpacity
+            style={styles.stepBtn}
+            onPress={onDecrement}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+            <Ionicons name="chevron-down" size={22} color={COLORS.primary} />
+        </TouchableOpacity>
+    </View>
+);
 
 const DatePickerModal = ({ visible, value, onConfirm, onCancel, title = 'Select Date' }) => {
     const today = new Date();
 
-    // Parse initial value
     const initial = value ? new Date(value) : today;
     const [day, setDay] = useState(initial.getDate());
     const [month, setMonth] = useState(initial.getMonth() + 1); // 1-based
@@ -90,13 +57,36 @@ const DatePickerModal = ({ visible, value, onConfirm, onCancel, title = 'Select 
         }
     }, [visible]);
 
-    const years = range(2020, today.getFullYear() + 1);
-    const months = range(1, 12);
     const maxDay = daysInMonth(month, year);
-    const days = range(1, maxDay);
-
-    // Clamp day if month/year changes
     const safeDay = Math.min(day, maxDay);
+
+    const changeDay = (delta) => {
+        setDay(prev => {
+            const max = daysInMonth(month, year);
+            const next = prev + delta;
+            if (next < 1) return max;
+            if (next > max) return 1;
+            return next;
+        });
+    };
+
+    const changeMonth = (delta) => {
+        setMonth(prev => {
+            const next = prev + delta;
+            if (next < 1) return 12;
+            if (next > 12) return 1;
+            return next;
+        });
+    };
+
+    const changeYear = (delta) => {
+        setYear(prev => {
+            const next = prev + delta;
+            if (next < 2020) return today.getFullYear() + 1;
+            if (next > today.getFullYear() + 1) return 2020;
+            return next;
+        });
+    };
 
     const handleConfirm = () => {
         const d = new Date(year, month - 1, safeDay, 12, 0, 0);
@@ -114,27 +104,31 @@ const DatePickerModal = ({ visible, value, onConfirm, onCancel, title = 'Select 
                         {String(safeDay).padStart(2, '0')} {MONTHS[month - 1]} {year}
                     </Text>
 
-                    <View style={styles.columnsRow}>
-                        {/* Day */}
-                        <Column
-                            items={days}
-                            selectedIndex={days.indexOf(safeDay)}
-                            onChange={(i) => setDay(days[i])}
-                        />
-                        {/* Month */}
-                        <Column
-                            items={months}
-                            selectedIndex={month - 1}
-                            onChange={(i) => setMonth(months[i])}
-                            formatItem={(m) => MONTHS[m - 1].slice(0, 3)}
-                        />
-                        {/* Year */}
-                        <Column
-                            items={years}
-                            selectedIndex={years.indexOf(year)}
-                            onChange={(i) => setYear(years[i])}
-                            formatItem={(y) => String(y)}
-                        />
+                    <View style={styles.steppersRow}>
+                        <View style={styles.stepperCol}>
+                            <Text style={styles.stepperLabel}>Day</Text>
+                            <Stepper
+                                label={String(safeDay).padStart(2, '0')}
+                                onIncrement={() => changeDay(1)}
+                                onDecrement={() => changeDay(-1)}
+                            />
+                        </View>
+                        <View style={styles.stepperCol}>
+                            <Text style={styles.stepperLabel}>Month</Text>
+                            <Stepper
+                                label={MONTHS[month - 1].slice(0, 3)}
+                                onIncrement={() => changeMonth(1)}
+                                onDecrement={() => changeMonth(-1)}
+                            />
+                        </View>
+                        <View style={styles.stepperCol}>
+                            <Text style={styles.stepperLabel}>Year</Text>
+                            <Stepper
+                                label={String(year)}
+                                onIncrement={() => changeYear(1)}
+                                onDecrement={() => changeYear(-1)}
+                            />
+                        </View>
                     </View>
 
                     <View style={styles.buttons}>
@@ -178,44 +172,49 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: COLORS.primary,
         textAlign: 'center',
-        marginBottom: 16,
-    },
-    columnsRow: {
-        flexDirection: 'row',
-        height: PICKER_HEIGHT,
-        justifyContent: 'center',
-        alignItems: 'center',
         marginBottom: 20,
     },
-    column: {
-        flex: 1,
-        height: PICKER_HEIGHT,
-        overflow: 'hidden',
-        position: 'relative',
+    steppersRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 24,
     },
-    selectionHighlight: {
-        position: 'absolute',
-        top: ITEM_HEIGHT * 2,
-        left: 4,
-        right: 4,
-        height: ITEM_HEIGHT,
+    stepperCol: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    stepperLabel: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        fontWeight: '600',
+        marginBottom: 8,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    stepper: {
+        alignItems: 'center',
+        gap: 4,
+    },
+    stepBtn: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.primary + '12',
+        borderRadius: 10,
+    },
+    stepValueBox: {
+        width: 64,
+        height: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: COLORS.primary + '18',
         borderRadius: 10,
         borderWidth: 1.5,
         borderColor: COLORS.primary + '40',
-        zIndex: 1,
     },
-    item: {
-        height: ITEM_HEIGHT,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    itemText: {
-        fontSize: 17,
-        color: COLORS.textSecondary,
-    },
-    itemTextSelected: {
-        fontSize: 19,
+    stepValue: {
+        fontSize: 18,
         fontWeight: 'bold',
         color: COLORS.primary,
     },

@@ -20,7 +20,7 @@ const FormInput = ({ label, value, onChangeText, placeholder, keyboardType = 'de
 );
 
 const RoomForm = ({ route, navigation }) => {
-    const { rooms } = useAppContext();
+    const { rooms, fetchRooms, fetchTenants, fetchOverdueTenants } = useAppContext();
     const { room } = route.params || {};
     const isEdit = !!room;
 
@@ -97,6 +97,8 @@ const RoomForm = ({ route, navigation }) => {
             }
 
             if (response.data.success) {
+                // Refresh all data — room rent/sharing changes affect tenants too
+                await Promise.all([fetchRooms(), fetchTenants(), fetchOverdueTenants()]);
                 Alert.alert("Success", `Room ${isEdit ? 'updated' : 'added'} successfully`);
                 navigation.goBack();
             } else {

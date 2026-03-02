@@ -36,27 +36,28 @@ const ConfigScreen = ({ navigation }) => {
         setLoading(false);
     };
 
+    // Builds the full API base URL from whatever the user typed:
+    // - Full URL (http/https)  → used as-is + /api  e.g. https://abc.ngrok-free.app/api
+    // - Plain IP               → local format       e.g. http://192.168.1.70:5294/api
+    const buildApiUrl = (input) => {
+        const trimmed = input.trim();
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            return trimmed.replace(/\/+$/, '') + '/api';
+        }
+        return `http://${trimmed}:5294/api`;
+    };
+
     const handleSave = async () => {
-        if (!ip) {
-            Alert.alert('Error', 'Please enter an IP address');
+        if (!ip.trim()) {
+            Alert.alert('Error', 'Please enter an IP address or server URL');
             return;
         }
-
-        // Basic IP format validation (optional but good)
-        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-        if (!ipRegex.test(ip)) {
-            Alert.alert('Warning', 'This doesn\'t look like a standard IP address. Continue anyway?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Yes', onPress: saveAndExit }
-            ]);
-        } else {
-            saveAndExit();
-        }
+        saveAndExit();
     };
 
     const saveAndExit = async () => {
-        await storage.saveIP(ip);
-        updateBaseUrl(`http://${ip}:5294/api`);
+        await storage.saveIP(ip.trim());
+        updateBaseUrl(buildApiUrl(ip));
         Alert.alert('Success', 'Settings saved!');
         navigation.goBack();
     };
@@ -64,10 +65,10 @@ const ConfigScreen = ({ navigation }) => {
     const testConnection = async () => {
         setTesting(true);
         try {
-            const testUrl = `http://${ip}:5294/api/tenants`;
+            const testUrl = buildApiUrl(ip) + '/tenants';
             const response = await axios.get(testUrl, { timeout: 5000 });
             if (response.status === 200) {
-                Alert.alert('Success', 'Connection successful!');
+                Alert.alert('✅ Success', `Connected to:\n${testUrl}`);
             } else {
                 Alert.alert('Failed', `Server returned status: ${response.status}`);
             }
@@ -75,7 +76,7 @@ const ConfigScreen = ({ navigation }) => {
             console.error('Test connection error:', error);
             Alert.alert(
                 'Connection Failed',
-                'Could not reach the server. Make sure:\n1. The backend is running\n2. Mobile & Laptop are on SAME WiFi\n3. IP address is correct'
+                'Could not reach the server. Check:\n• Backend is running\n• IP / URL is correct\n• For local: same WiFi network'
             );
         } finally {
             setTesting(false);
@@ -98,17 +99,19 @@ const ConfigScreen = ({ navigation }) => {
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <Text style={styles.title}>Connection Settings</Text>
             <Text style={styles.description}>
-                If the app cannot connect to the backend, enter your laptop's current IP address below.
+                Enter your laptop's local IP (same WiFi) or a public URL (ngrok / Cloudflare Tunnel).
             </Text>
 
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>Backend IP Address</Text>
+                <Text style={styles.label}>Backend IP or URL</Text>
                 <TextInput
                     style={styles.input}
                     value={ip}
                     onChangeText={setIp}
-                    placeholder="e.g. 192.168.1.70"
-                    keyboardType="numeric"
+                    placeholder="192.168.1.70  or  https://abc.ngrok-free.app"
+                    keyboardType="default"
+                    autoCapitalize="none"
+                    autoCorrect={false}
                 />
             </View>
 
@@ -140,7 +143,7 @@ const ConfigScreen = ({ navigation }) => {
             </View>
 
             <Text style={styles.footer}>
-                Backend port is fixed to 5294 (Standard for this project).
+                Local IP uses port 5294. Full URLs (ngrok/Cloudflare) are used as-is.
             </Text>
         </ScrollView>
     );

@@ -6,8 +6,9 @@ namespace PgManager.Entities
     {
         public int Id { get; set; }
 
-        [Required]
-        public required string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
+
+        public string? Email { get; set; }
 
         [Required]
         public required string PgName { get; set; }

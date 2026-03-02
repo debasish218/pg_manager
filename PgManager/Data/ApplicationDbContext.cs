@@ -41,15 +41,13 @@ namespace PgManager.Data
                     .WithMany(r => r.Tenants)
                     .HasForeignKey(t => t.RoomId)
                     .OnDelete(DeleteBehavior.Restrict);
-
-                entity.Property(t => t.SharingType)
-                    .HasConversion<int>();
             });
 
             // User Configuration
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(u => u.PhoneNumber).IsUnique();
+                entity.HasIndex(u => u.Email).IsUnique();
             });
         }
     }

@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import apiClient from '../api/api';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const AuthContext = createContext();
 
@@ -28,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
         setIsLoading(true);
         try {
-            const token = await SecureStore.getItemAsync('userToken');
+            const token = await AsyncStorage.getItem('userToken');
             if (token) {
                 const decoded = jwtDecode(token);
                 // Check if token is expired
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
             const response = await apiClient.post('/auth/login', { phoneNumber, code });
             if (response.status === 200) {
                 const { token, user } = response.data;
-                await SecureStore.setItemAsync('userToken', token);
+                await AsyncStorage.setItem('userToken', token);
                 setUserToken(token);
                 setUserData(normalizeUserData(user));
                 apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -64,6 +65,27 @@ export const AuthProvider = ({ children }) => {
             return {
                 success: false,
                 message: error.response?.data?.message || error.response?.data || 'Login failed'
+            };
+        }
+    };
+
+    const googleLogin = async (idToken) => {
+        try {
+            const response = await apiClient.post('/auth/google-login', { idToken });
+            if (response.status === 200) {
+                const { token, user } = response.data;
+                await AsyncStorage.setItem('userToken', token);
+                setUserToken(token);
+                setUserData(normalizeUserData(user));
+                apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                return { success: true };
+            }
+        } catch (error) {
+            console.error('Google login error:', error);
+            const errorMessage = error.response?.data?.message || typeof error.response?.data === 'string' ? error.response.data : (error.message || String(error));
+            return {
+                success: false,
+                message: errorMessage
             };
         }
     };
@@ -84,7 +106,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const logout = async () => {
-        await SecureStore.deleteItemAsync('userToken');
+        await AsyncStorage.removeItem('userToken');
         setUserToken(null);
         setUserData(null);
         delete apiClient.defaults.headers.common['Authorization'];
@@ -135,6 +157,7 @@ export const AuthProvider = ({ children }) => {
             userData,
             isLoading,
             login,
+            googleLogin,
             logout,
             setup,
             updateProfile,

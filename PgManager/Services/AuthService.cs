@@ -53,7 +53,8 @@ namespace PgManager.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
+                    new Claim(ClaimTypes.Email, user.Email ?? ""),
+                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
                     new Claim(ClaimTypes.GivenName, user.Name ?? ""),
                     new Claim("pgname", user.PgName),
                     new Claim(ClaimTypes.Role, user.Role)

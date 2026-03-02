@@ -5,6 +5,7 @@ using PgManager.Data;
 using PgManager.DTO;
 using PgManager.Entities;
 using PgManager.Services;
+using Google.Apis.Auth;
 
 namespace PgManager.Controllers
 {
@@ -66,7 +67,37 @@ namespace PgManager.Controllers
                 return Unauthorized("Invalid code");
 
             var token = _authService.GenerateJwtToken(user);
-            return Ok(new { Token = token, User = new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role } });
+            return Ok(new { Token = token, User = new { user.Id, user.Name, user.Email, user.PhoneNumber, user.PgName, user.Role } });
+        }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+                
+                if (user == null)
+                {
+                    user = new User 
+                    { 
+                        Email = payload.Email, 
+                        Name = payload.Name, 
+                        PgName = "My PG",
+                        PhoneNumber = null 
+                    };
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+                
+                var token = _authService.GenerateJwtToken(user);
+                return Ok(new { Token = token, User = new { user.Id, user.Name, user.Email, user.PhoneNumber, user.PgName, user.Role } });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized("Invalid Google token");
+            }
         }
 
         [HttpGet("me")]
@@ -84,7 +115,7 @@ namespace PgManager.Controllers
                 return NotFound("User not found");
             }
 
-            return Ok(new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role });
+            return Ok(new { user.Id, user.Name, user.Email, user.PhoneNumber, user.PgName, user.Role });
         }
 
         [Authorize]
@@ -109,7 +140,7 @@ namespace PgManager.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { user.Id, user.Name, user.PhoneNumber, user.PgName, user.Role });
+            return Ok(new { user.Id, user.Name, user.Email, user.PhoneNumber, user.PgName, user.Role });
         }
 
         [Authorize]
@@ -157,5 +188,10 @@ namespace PgManager.Controllers
     {
         public string PhoneNumber { get; set; }
         public string Code { get; set; }
+    }
+
+    public class GoogleLoginRequest
+    {
+        public required string IdToken { get; set; }
     }
 }

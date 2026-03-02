@@ -17,16 +17,10 @@ namespace PgManager.Entities
         public string PhoneNumber { get; set; }
 
         [Required]
-        public SharingType SharingType { get; set; }
-
-        [Required]
         public int UserId { get; set; }
 
         [Required]
         public int RoomId { get; set; }
-
-        [Required]
-        public int RentAmount { get; set; }
 
         [Required]
         public int AdvanceAmount { get; set; }
@@ -94,23 +88,24 @@ namespace PgManager.Entities
         /// <summary>
         /// Auto-calculated total due:
         ///   DueAmount (stored residual from partial payments)
-        ///   + (MonthsElapsed × RentAmount)
+        ///   + (MonthsElapsed * Room.RentPerBed)
         ///
         /// Special case: if LastPaidDate is null (no payment ever recorded)
-        ///   → rent is immediately due without waiting for one month.
-        ///   → CurrentDue = DueAmount + ((MonthsElapsed + 1) × RentAmount)
+        ///   rent is immediately due without waiting for one month.
+        ///   CurrentDue = DueAmount + ((MonthsElapsed + 1) * rent)
         /// </summary>
         [NotMapped]
         public int CurrentDue
         {
             get
             {
+                var rent = Room?.RentPerBed ?? 0;
                 if (!LastPaidDate.HasValue)
                 {
                     // No payment on record — rent is due from day 1
-                    return DueAmount + ((MonthsElapsed + 1) * RentAmount);
+                    return DueAmount + ((MonthsElapsed + 1) * rent);
                 }
-                return DueAmount + (MonthsElapsed * RentAmount);
+                return DueAmount + (MonthsElapsed * rent);
             }
         }
     }

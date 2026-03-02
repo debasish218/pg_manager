@@ -129,9 +129,14 @@ const AppContent = () => {
 
     useEffect(() => {
         const initApi = async () => {
-            const savedIP = await storage.getIP();
-            if (savedIP) {
-                updateBaseUrl(`http://${savedIP}:5294/api`);
+            const saved = await storage.getIP();
+            if (saved) {
+                // If user saved a full URL (ngrok/cloudflare), use it directly.
+                // If it's a plain IP, build the local http://ip:port/api format.
+                const url = (saved.startsWith('http://') || saved.startsWith('https://'))
+                    ? saved.replace(/\/+$/, '') + '/api'
+                    : `http://${saved}:5294/api`;
+                updateBaseUrl(url);
             }
             setIsIpLoaded(true);
         };
