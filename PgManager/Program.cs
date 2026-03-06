@@ -27,7 +27,25 @@ builder.Services.AddCors(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var rawConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+
+// Render provides the DB URL as postgresql://user:pass@host:port/db
+// Npgsql requires Host=...;Database=...;Username=...;Password=... format
+string connectionString;
+if (rawConnection != null && (rawConnection.StartsWith("postgresql://") || rawConnection.StartsWith("postgres://")))
+{
+    var uri = new Uri(rawConnection);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)}"
+        + $";Database={uri.AbsolutePath.TrimStart('/')}"
+        + $";Username={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])}"
+        + ";SSL Mode=Require;Trust Server Certificate=true;";
+}
+else
+{
+    connectionString = rawConnection ?? throw new InvalidOperationException("No connection string found.");
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
