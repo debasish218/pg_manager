@@ -156,11 +156,14 @@ npx expo start
 
 ### Complete Startup Sequence
 
-**Terminal 1 - Backend:**
+**Terminal 1 - Backend + ngrok Tunnel:**
 ```bash
-cd PgManager/PgManager
-dotnet run --urls "http://0.0.0.0:5294"
+# This starts the .NET backend AND the ngrok tunnel automatically
+cd PgManager
+chmod +x start-server.sh
+./start-server.sh
 ```
+*(The `start-server.sh` script uses a fixed ngrok domain configured in the mobile app's `theme.js`.)*
 
 **Terminal 2 - Mobile App:**
 ```bash

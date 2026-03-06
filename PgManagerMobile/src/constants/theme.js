@@ -50,7 +50,7 @@ export const SIZES = {
 import { getLocalIP } from './getLocalIP';
 
 // ✅ Default backend URL — used automatically by all users (no manual entry needed)
-export const DEFAULT_BACKEND_URL = 'https://pg-manager-vjbl.onrender.com';
+export const DEFAULT_BACKEND_URL = 'https://spoilless-supplely-lawerence.ngrok-free.dev';
 
 const ENV = {
     development: {
