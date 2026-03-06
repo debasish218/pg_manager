@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PgManager")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9c581c5dfb1d62fe1a805c420eb26405aabe39a5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f732c0cca5c7ce90fce809fe8c17f00cf52855c4")]
 [assembly: System.Reflection.AssemblyProductAttribute("PgManager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PgManager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

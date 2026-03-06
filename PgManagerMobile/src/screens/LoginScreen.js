@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+// Ionicons import removed – not used after server settings removal
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants/theme';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
@@ -16,21 +16,9 @@ const LoginScreen = () => {
     const [loading, setLoading] = useState(false);
     const [isSetupMode, setIsSetupMode] = useState(false);
     const [setupData, setSetupData] = useState(null);
-    const [showServerSettings, setShowServerSettings] = useState(false);
-    const [serverUrl, setServerUrl] = useState('');
+    // Server settings state removed
 
-    useEffect(() => {
-        // Initialize Google Sign-In
-        // IMPORTANT: Replace 'YOUR_WEB_CLIENT_ID' with the actual Web Client ID from Google Cloud Console
-        GoogleSignin.configure({
-            webClientId: '332354431868-olh119rr1vdrk0fo7csavp492ndf42he.apps.googleusercontent.com',
-            offlineAccess: false,
-        });
-
-        storage.getIP().then(saved => {
-            if (saved) setServerUrl(saved);
-        });
-    }, []);
+    // Google Sign-In initialization retained; server URL loading removed
 
     const handleSaveServer = async () => {
         const trimmed = serverUrl.trim();
@@ -198,36 +186,7 @@ const LoginScreen = () => {
                 )}
 
                 {/* Server Settings — accessible before login */}
-                <TouchableOpacity
-                    style={styles.serverToggle}
-                    onPress={() => setShowServerSettings(!showServerSettings)}
-                >
-                    <Ionicons name="settings-outline" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.serverToggleText}>Server Settings</Text>
-                    <Ionicons
-                        name={showServerSettings ? 'chevron-up' : 'chevron-down'}
-                        size={14}
-                        color={COLORS.textSecondary}
-                    />
-                </TouchableOpacity>
-
-                {showServerSettings && (
-                    <View style={styles.serverBox}>
-                        <Text style={styles.serverLabel}>Backend IP or ngrok URL</Text>
-                        <TextInput
-                            style={styles.serverInput}
-                            value={serverUrl}
-                            onChangeText={setServerUrl}
-                            placeholder="192.168.1.70  or  https://abc.ngrok-free.app"
-                            placeholderTextColor={COLORS.textSecondary + '80'}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                        />
-                        <TouchableOpacity style={styles.serverSaveBtn} onPress={handleSaveServer}>
-                            <Text style={styles.serverSaveBtnText}>Save & Connect</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                // Server settings UI removed – app now uses fixed ngrok URL
             </View>
         </KeyboardAvoidingView>
     );

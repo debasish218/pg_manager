@@ -49,14 +49,17 @@ export const SIZES = {
 
 import { getLocalIP } from './getLocalIP';
 
+// ✅ Default backend URL — used automatically by all users (no manual entry needed)
+export const DEFAULT_BACKEND_URL = 'https://spoilless-supplely-lawerence.ngrok-free.dev';
+
 const ENV = {
     development: {
         // Auto-detects IP - no need to change when IP changes!
         apiUrl: `http://${getLocalIP()}:5294/api`,
     },
     production: {
-        // TODO: Replace with your AWS URL before deployment
-        apiUrl: 'https://your-api-domain.com/api',
+        // ngrok static domain — never changes, even after server restarts
+        apiUrl: `${DEFAULT_BACKEND_URL}/api`,
     },
 };
 

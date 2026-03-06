@@ -21,9 +21,10 @@ const TenantsScreen = ({ navigation }) => {
     const { tenants, loading, fetchTenants } = useAppContext();
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Refresh tenants when screen comes into focus (e.g., after deleting a tenant)
+    // Reset search and refresh tenants every time the screen comes into focus
     React.useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
+            setSearchQuery('');
             fetchTenants();
         });
         return unsubscribe;

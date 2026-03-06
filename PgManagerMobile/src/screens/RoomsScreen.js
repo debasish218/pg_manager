@@ -22,13 +22,15 @@ const RoomsScreen = ({ navigation }) => {
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Refresh rooms when screen comes into focus (e.g., after deleting a room)
+    // Reset filters and refresh rooms every time the screen comes into focus
     React.useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
-            fetchRooms(selectedFilter);
+            setSearchQuery('');
+            setSelectedFilter(null);
+            fetchRooms(null);
         });
         return unsubscribe;
-    }, [navigation, selectedFilter]);
+    }, [navigation]);
 
     const filterOptions = [
         { label: 'All', value: null },

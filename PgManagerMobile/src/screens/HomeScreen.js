@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SHADOWS, SIZES } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,12 +7,16 @@ import { useAuth } from '../context/AuthContext';
 const { width } = Dimensions.get('window');
 
 // Extracted outside the screen so it is not re-created on every render
-const StatCard = ({ title, value, subValue, color }) => (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
+const StatCard = ({ title, value, subValue, color, onPress }) => (
+    <TouchableOpacity
+        style={[styles.statCard, { borderLeftColor: color }]}
+        onPress={onPress}
+        activeOpacity={onPress ? 0.7 : 1}
+    >
         <Text style={styles.statTitle}>{title}</Text>
         <Text style={[styles.statValue, { color }]}>{value}</Text>
         {subValue && <Text style={styles.statSubValue}>{subValue}</Text>}
-    </View>
+    </TouchableOpacity>
 );
 
 const HomeScreen = ({ navigation }) => {
@@ -21,18 +24,7 @@ const HomeScreen = ({ navigation }) => {
     const { userData } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity
-                    style={{ marginRight: 20 }}
-                    onPress={() => navigation.navigate('Config')}
-                >
-                    <Ionicons name="settings-outline" size={24} color={COLORS.primary} />
-                </TouchableOpacity>
-            ),
-        });
-    }, [navigation]);
+    // Server settings hidden from users — URL is fixed via ngrok static domain
 
     // Refresh data when screen comes into focus (e.g., after deleting room/tenant)
     useEffect(() => {
@@ -72,18 +64,21 @@ const HomeScreen = ({ navigation }) => {
                     value={`${occupancyRate.toFixed(1)}%`}
                     subValue={`${occupiedBeds}/${totalBeds} Beds occupied`}
                     color={COLORS.primary}
+                    onPress={() => navigation.navigate('Rooms')}
                 />
                 <StatCard
                     title="Total Due"
                     value={`₹${totalDue.toLocaleString()}`}
                     subValue={`${tenantsWithDues.length} Tenants with dues`}
                     color={COLORS.error}
+                    onPress={() => navigation.navigate('Tenants')}
                 />
                 <StatCard
                     title="Total Rooms"
                     value={rooms.length}
                     subValue={`${rooms.filter(r => r.occupiedBeds < r.totalBeds).length} Rooms available`}
                     color={COLORS.success}
+                    onPress={() => navigation.navigate('Rooms')}
                 />
             </View>
 

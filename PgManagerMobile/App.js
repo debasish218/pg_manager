@@ -17,10 +17,12 @@ import RoomForm from './src/screens/RoomForm';
 import LoginScreen from './src/screens/LoginScreen';
 import AccountScreen from './src/screens/AccountScreen';
 import { COLORS } from './src/constants/theme';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import ConfigScreen from './src/screens/ConfigScreen';
 import { storage } from './src/utils/storage';
 import { updateBaseUrl } from './src/api/api';
+import { DEFAULT_BACKEND_URL } from './src/constants/theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -128,6 +130,15 @@ const AppContent = () => {
     const [isIpLoaded, setIsIpLoaded] = useState(false);
 
     useEffect(() => {
+        // Configure Google Sign-In — MUST be called before any GoogleSignin method
+        GoogleSignin.configure({
+            // webClientId is the "Web application" type OAuth 2.0 client ID
+            // from Google Cloud Console → APIs & Services → Credentials
+            webClientId: '332354431868-olh119rr1vdrk0fo7csavp492ndf42he.apps.googleusercontent.com',
+            scopes: ['profile', 'email'],
+            offlineAccess: false,
+        });
+
         const initApi = async () => {
             const saved = await storage.getIP();
             if (saved) {
@@ -137,6 +148,9 @@ const AppContent = () => {
                     ? saved.replace(/\/+$/, '') + '/api'
                     : `http://${saved}:5294/api`;
                 updateBaseUrl(url);
+            } else {
+                // ✅ No saved URL — automatically use the default ngrok backend
+                updateBaseUrl(`${DEFAULT_BACKEND_URL}/api`);
             }
             setIsIpLoaded(true);
         };
