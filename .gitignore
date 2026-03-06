@@ -1,0 +1,6 @@
+# .NET build output
+PgManager/bin/
+PgManager/obj/
+
+# APK files
+PgManagerMobile/*.apk
