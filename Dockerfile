@@ -16,8 +16,8 @@ WORKDIR /app
 
 COPY --from=build /app/out .
 
-# Render assigns the PORT env variable; ASP.NET Core respects ASPNETCORE_URLS
-ENV ASPNETCORE_URLS=http://+:10000
+# Render dynamically assigns a PORT — ASP.NET Core must listen on it
+ENV ASPNETCORE_URLS=http://+:${PORT:-10000}
 EXPOSE 10000
 
-ENTRYPOINT ["dotnet", "PgManager.dll"]
+ENTRYPOINT ["sh", "-c", "ASPNETCORE_URLS=http://+:${PORT:-10000} dotnet PgManager.dll"]
