@@ -14,12 +14,21 @@ RUN dotnet publish PgManager/PgManager.csproj -c Release -o /app/out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# Install curl/unzip, download ngrok, and clean up
+RUN apt-get update && apt-get install -y curl unzip \
+    && curl -s https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz -o ngrok.tgz \
+    && tar xvzf ngrok.tgz -C /usr/local/bin \
+    && rm ngrok.tgz && apt-get clean
+
 COPY --from=build /app/out .
 
-# Render dynamically assigns a PORT — ASP.NET Core respects this automatically in .NET 8
-# We also provide a fallback via ASPNETCORE_URLS for local testing
+# Copy and make the startup script executable
+COPY render-start.sh .
+RUN chmod +x render-start.sh
+
+# Port configuration
 ENV ASPNETCORE_URLS=http://+:${PORT:-10000}
 EXPOSE 10000
 
-# Simply run the app, ASP.NET Core 8 automatically listens on the PORT environment variable
-ENTRYPOINT ["dotnet", "PgManager.dll"]
+# The custom script starts both .NET and ngrok
+ENTRYPOINT ["./render-start.sh"]
