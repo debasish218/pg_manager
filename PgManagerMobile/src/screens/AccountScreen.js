@@ -19,6 +19,7 @@ const AccountScreen = () => {
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editPgName, setEditPgName] = useState('');
     const [editName, setEditName] = useState('');
+    const [editPhoneNumber, setEditPhoneNumber] = useState('');
     const [updating, setUpdating] = useState(false);
 
     const handleLogout = () => {
@@ -46,6 +47,7 @@ const AccountScreen = () => {
     const openEditModal = () => {
         setEditPgName(userData?.pgName || '');
         setEditName(userData?.name || '');
+        setEditPhoneNumber(userData?.phoneNumber || '');
         setEditModalVisible(true);
     };
 
@@ -56,7 +58,7 @@ const AccountScreen = () => {
         }
 
         setUpdating(true);
-        const result = await updateProfile(editPgName, editName);
+        const result = await updateProfile(editPgName, editName, editPhoneNumber);
         setUpdating(false);
 
         if (result.success) {
@@ -213,6 +215,16 @@ const AccountScreen = () => {
                                 value={editName}
                                 onChangeText={setEditName}
                                 placeholder="Enter your name (optional)"
+                                editable={!updating}
+                            />
+
+                            <Text style={styles.inputLabel}>Phone Number</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={editPhoneNumber}
+                                onChangeText={setEditPhoneNumber}
+                                placeholder="Enter phone number"
+                                keyboardType="phone-pad"
                                 editable={!updating}
                             />
 

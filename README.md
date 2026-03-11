@@ -361,3 +361,8 @@ MIT License - Free to use and modify
 ---
 
 **Built with ❤️ using .NET & React Native (Expo)**
+
+### Command to generate apk
+
+inside PgManagerMobile
+eas build -p android --profile preview-slim --non-interactive

@@ -112,9 +112,9 @@ export const AuthProvider = ({ children }) => {
         delete apiClient.defaults.headers.common['Authorization'];
     };
 
-    const updateProfile = async (pgName, name) => {
+    const updateProfile = async (pgName, name, phoneNumber) => {
         try {
-            const response = await apiClient.put('/auth/profile', { pgName, name });
+            const response = await apiClient.put('/auth/profile', { pgName, name, phoneNumber });
             if (response.status === 200) {
                 const updatedUser = response.data;
                 // Update local user data

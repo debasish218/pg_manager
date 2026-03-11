@@ -137,6 +137,10 @@ namespace PgManager.Controllers
             // Update profile fields
             user.PgName = request.PgName;
             user.Name = request.Name;
+            if (request.PhoneNumber != null)
+            {
+                user.PhoneNumber = request.PhoneNumber;
+            }
 
             await _context.SaveChangesAsync();
 
