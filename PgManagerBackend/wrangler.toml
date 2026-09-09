@@ -1,0 +1,14 @@
+name = "pg-manager"
+type = "service"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[env.production]
+routes = [
+  { pattern = "pg-manager.YOURNAME.workers.dev", zone_name = "workers.dev" }
+]
+
+[env.development]
+routes = [
+  { pattern = "localhost:3000" }
+]

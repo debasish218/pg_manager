@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int     @id @default(autoincrement())
+  phoneNumber   String? @unique
+  email         String? @unique
+  pgName        String
+  name          String?
+  totpSecret    String? // Nullable initially for setup
+  role          String  @default("User")
+
+  // Relations
+  rooms         Room[]
+  tenants       Tenant[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Room {
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  roomNumber    Int
+  sharingType   Int     // 1=Single, 2=Double, 3=Triple, 4=Four, 5=Five, 6=Six
+  totalBeds     Int
+  occupiedBeds  Int     @default(0)
+  rentPerBed    Int     @default(0)
+  floor         Int     @default(0)
+
+  // Relations
+  user          User    @relation(fields: [userId], references: [id])
+  tenants       Tenant[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Unique constraint: room number must be unique per user
+  @@unique([userId, roomNumber])
+  @@index([userId])
+}
+
+model Tenant {
+  id              Int     @id @default(autoincrement())
+  userId          Int
+  roomId          Int
+  name            String
+  phoneNumber     String  // 10 digits
+  advanceAmount   Int
+  joinDate        DateTime
+  lastPaidDate    DateTime?
+  dueAmount       Int     @default(0)
+  isActive        Boolean @default(true)
+
+  // Relations
+  user            User    @relation(fields: [userId], references: [id])
+  room            Room    @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Indexes for common queries
+  @@index([userId])
+  @@index([roomId])
+  @@index([isActive])
+  @@index([lastPaidDate])
+}
